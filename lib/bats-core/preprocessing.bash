@@ -1,11 +1,13 @@
 if [[ -z "$TMPDIR" ]]; then
-  BATS_TMPDIR='/tmp'
+  BATS_TMPDIR="/tmp"
 else
   BATS_TMPDIR="${TMPDIR%/}"
 fi
+BATS_RUN_TMPDIR="$BATS_TMPDIR/bats-run-$BATS_ROOT_PID"
+mkdir -p "$BATS_RUN_TMPDIR"
 
-BATS_TMPNAME="$BATS_TMPDIR/bats.$$"
-BATS_PARENT_TMPNAME="$BATS_TMPDIR/bats.$PPID"
+BATS_TMPNAME="$BATS_RUN_TMPDIR/bats.$$"
+BATS_PARENT_TMPNAME="$BATS_RUN_TMPDIR/bats.$PPID"
 BATS_OUT="${BATS_TMPNAME}.out"
 
 bats_preprocess_source() {

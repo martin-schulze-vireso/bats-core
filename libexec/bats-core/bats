@@ -65,6 +65,7 @@ export BATS_CWD="$PWD"
 export BATS_TEST_PATTERN="^[[:blank:]]*@test[[:blank:]]+(.*[^[:blank:]])[[:blank:]]+\{(.*)\$"
 export BATS_TEST_FILTER=
 export PATH="$BATS_LIBEXEC:$PATH"
+export BATS_ROOT_PID=$$
 
 arguments=()
 
