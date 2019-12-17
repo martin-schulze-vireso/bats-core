@@ -1,6 +1,10 @@
 load 'test_helper'
 fixtures file_setup_teardown
 
+setup_file() {
+  export SETUP_FILE_EXPORT_TEST=true
+}
+
 @test "setup_file is run once per file" {
     make_bats_test_suite_tmpdir
     export LOG="$BATS_TEST_SUITE_TMPDIR/setup_file.log"
@@ -154,4 +158,8 @@ ok 1 empty
 not ok 2 teardown_file failed
 # (from function \`teardown_file' in test file $RELATIVE_FIXTURE_ROOT/teardown_file_halfway_error.bats, line 3)
 #   \`false' failed" ]]
+}
+
+@test "variables exported in setup_file are visible in tests" {
+  [[ $SETUP_FILE_EXPORT_TEST == "true" ]]
 }
