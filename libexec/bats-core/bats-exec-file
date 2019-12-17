@@ -128,11 +128,30 @@ bats_run_tests() {
   done < "$TESTS_FILE"
 
   if [[ "$num_jobs" != 1 ]]; then
-    # Only use GNU parallel when we want parallel execution -- there is a small
-    # amount of overhead using it over a simple loop in the serial case.
-    set -o pipefail
-    printf '%s\n' "${tests_to_run[@]}" | grep -v '^$' | \
-      parallel -qk -j "$num_jobs" --colsep="\t" -- bats-exec-test "${flags[@]}" "$filename" '{1}' "{=\$_=\$job->seq()+$test_number=}" || status=1
+    test_pids_and_numbers=()
+    for test_name in "${tests_to_run[@]}"; do
+      # Only handle non-empty lines
+      if [[ $test_name ]]; then
+        ((++test_number))
+        # parallelize across files using parallel's semaphore mode
+        # use --results to gather output in separate files
+        # use --fg mode to retrieve exit codes (all non zero exit codes seem to mapped to 1), but which requires us to suppress its output
+        parallel --semaphore -j "$num_jobs" --fg --results parallel_output/$test_number/{} -- bats-exec-test "${flags[@]}" "$filename" "$test_name" "$test_number" 2>/dev/null >/dev/null &
+        pid=$!
+        test_pids_and_numbers+=("$pid,$test_number")
+      fi
+    done
+    for test_pid_and_number in "${test_pids_and_numbers[@]}"; do
+      test_pid=${test_pid_and_number%,*}
+      test_number=${test_pid_and_number##*,}
+      test_output_dir=parallel_output/$test_number
+      # fetch the return code
+      wait $test_pid || status=1
+      # wait for tests to finish in the order they were started and output their results as they come in
+      cat "$test_output_dir/stdout"
+      # additionally output stderr as parallel does by default
+      cat "$test_output_dir/stderr" >&2
+    done
   else
     for test_name in "${tests_to_run[@]}"; do
         # Only handle non-empty lines
