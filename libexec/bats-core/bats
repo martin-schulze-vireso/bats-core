@@ -30,6 +30,9 @@ Usage: $cmd [-cr] [-f <regex>] [-j <jobs>] [-p | -t] <test>...
   -f, --filter     Filter test cases by names matching the regular expression
   -h, --help       Display this help message
   -j, --jobs       Number of parallel jobs to run (requires GNU parallel)
+  --parallel-preserve-environment 
+                   Preserve the environment When running via GNU parallel (run 
+                   `parallel --record-env` before!)
   -p, --pretty     Show results in pretty format (default for terminals)
   -r, --recursive  Include tests in subdirectories
   -t, --tap        Show results in TAP format
@@ -126,6 +129,13 @@ while [[ "$#" -ne 0 ]]; do
     ;;
   -p|--pretty)
     pretty=1
+    ;;
+  --parallel-preserve-environment)
+    flags+=("--parallel-preserve-environment")
+    # check if parallel's env setup was run before
+    # will print on stderr and return 255 on failure
+    # suppress stdout (on success)
+    parallel --env _ echo ::: 1 >/dev/null || exit 1
     ;;
   -*)
     abort "Bad command line option '$1'"

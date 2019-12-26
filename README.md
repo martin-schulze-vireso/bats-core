@@ -200,6 +200,9 @@ Usage: bats [-cr] [-f <regex>] [-j <jobs>] [-p | -t] <test>...
   -f, --filter     Filter test cases by names matching the regular expression
   -h, --help       Display this help message
   -j, --jobs       Number of parallel jobs to run (requires GNU parallel)
+  --parallel-preserve-environment 
+                   Preserve the environment When running via GNU parallel (run 
+                   `parallel --record-env` before!)
   -p, --pretty     Show results in pretty format (default for terminals)
   -r, --recursive  Include tests in subdirectories
   -t, --tap        Show results in TAP format
@@ -251,6 +254,12 @@ Ordering of parallised tests is not guaranteed, so this mode may break suites
 with dependencies between tests (or tests that write to shared locations). When
 enabling `--jobs` for the first time be sure to re-run bats multiple times to
 identify any inter-test dependencies or non-deterministic test behaviour.
+
+If your code relies on variables from the environment, or from `setup_file()`, 
+you need to specify `--parallel-preserve-environment` as well. Note that this 
+requires running `parallel --record-env` first as a setup step as GNU Parallel 
+will refuse to run without. Only environment variables that were **not** set 
+during this setup step will be preserved!
 
 [gnu-parallel]: https://www.gnu.org/software/parallel/
 
