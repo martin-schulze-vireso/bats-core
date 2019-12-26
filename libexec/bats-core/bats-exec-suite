@@ -27,6 +27,9 @@ while [[ "$#" -ne 0 ]]; do
     extended_syntax_flag='-x'
     flags+=('-x')
     ;;
+  --parallel-preserve-environment)
+    flags+=('--parallel-preserve-environment')
+    ;;
   *)
     break
     ;;
@@ -87,21 +90,39 @@ if [[ "${test_count}" == 0 ]]; then
   exit
 fi
 
-test_number=0
-for filename in "$@"; do
-  TESTS_FILE=`mktemp`
-  file_tests=''
-  initial_test_number=$test_number
-  for test_line in "${all_tests[@]}"; do
-    if [[ "${test_line%%$'\t'*}" == "$filename" ]]; then
-      test_name="${test_line##*$'\t'}"
-      printf "$test_name"$'\n' >> "$TESTS_FILE"
-      (( ++test_number))
-    fi
+# takes as $1 the name of the file for which the tests should be filtered
+bats_create_test_list_files() {
+  for filename in "$@"; do
+    TESTS_FILE=`mktemp`
+    initial_test_number=$test_number
+    for test_line in "${all_tests[@]}"; do
+      if [[ "${test_line%%$'\t'*}" == "$1" ]]; then
+        test_name="${test_line##*$'\t'}"
+        printf "$test_name"$'\n' >> "$TESTS_FILE"
+        (( ++test_number))
+      fi
+    done
+    printf "%s\t%s\t%d\t%s" "$filename" "$test_name" "$initial_test_number" "$TESTS_FILE"
   done
-  bats-exec-file "${flags[@]}" "$filename" $initial_test_number "$TESTS_FILE" || status=1
-  rm "$TESTS_FILE"
-done
+}
+
+bats_run_exec_file_and_delete_tests_file() {
+  bats-exec-file "$@"
+  rm "$4"
+}
+
+test_number=0
+
+if [[ $num_jobs ]]; then
+  (bats_create_test_list_files | parallel bats_run_exec_file_and_delete_tests_file) || status=1
+else
+  TESTS_FILES=$(bats_create_test_list_files)
+  for TEST_FILE in "$TEST_FILES"; do
+    bats-exec-file "${flags[@]}" $TEST_FILE
+    rm "${TESTS_FILE% *}"
+  done
+fi
+
 if [[ "${test_number}" != "${test_count}" ]]; then
   printf '# bats warning: Only executed %s of %s tests\n' "$test_number" "$test_count"
   status=1
