@@ -125,8 +125,4 @@ else
   done
 fi
 
-if [[ "${test_number}" != "${test_count}" ]]; then
-  printf '# bats warning: Only executed %s of %s tests\n' "$test_number" "$test_count"
-  status=1
-fi
 exit "$status"
