@@ -6,6 +6,7 @@ extended_syntax_flag=''
 filter=''
 num_jobs=1
 have_gnu_parallel=
+bats_parallel_args=''
 flags=()
 
 while [[ "$#" -ne 0 ]]; do
@@ -29,7 +30,7 @@ while [[ "$#" -ne 0 ]]; do
     flags+=('-x')
     ;;
   --parallel-preserve-environment)
-    flags+=('--parallel-preserve-environment')
+    bats_parallel_args="--env _"
     ;;
   *)
     break

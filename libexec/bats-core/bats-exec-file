@@ -4,7 +4,6 @@ set -eET
 export flags=()
 num_jobs=1
 filter=''
-parallel_preserve_environment=''
 
 while [[ "$#" -ne 0 ]]; do
   case "$1" in
@@ -22,9 +21,6 @@ while [[ "$#" -ne 0 ]]; do
   -x)
     extended_syntax_flag='-x'
     flags+=('-x')
-    ;;
-  --parallel-preserve-environment)
-    parallel_preserve_environment=1
     ;;
   *)
     break
@@ -134,20 +130,14 @@ bats_run_tests() {
   if [[ "$num_jobs" != 1 ]]; then
     test_pids_and_numbers=()
     output_folder="$BATS_RUN_TMPDIR/parallel_output"
-    if [[ parallel_preserve_environment -eq 1 ]]; then
-      local parallel_args=--env _
-    else
-      local parallel_args=''
-    fi
     for test_name in "${tests_to_run[@]}"; do
       # Only handle non-empty lines
       if [[ $test_name ]]; then
         ((++test_number))
-        #mkdir -p $output_folder
         # parallelize across files using parallel's semaphore mode
         # use --results to gather output in separate files
         # use --fg mode to retrieve exit codes (all non zero exit codes seem to mapped to 1), but which requires us to suppress its output
-        parallel --semaphore -j "$num_jobs" ${parallel_args} --fg --results "$output_folder/$test_number/{}" -- bats-exec-test "${flags[@]}" "$filename" "$test_name" "$test_number" 2>/dev/null >/dev/null &
+        parallel --semaphore -j "$num_jobs" ${bats_parallel_args} --fg --results "$output_folder/$test_number/{}" -- bats-exec-test "${flags[@]}" "$filename" "$test_name" "$test_number" 2>/dev/null >/dev/null &
         pid=$!
         test_pids_and_numbers+=("$pid,$test_number")
       fi
