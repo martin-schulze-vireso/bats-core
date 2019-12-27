@@ -169,19 +169,6 @@ bats_run_tests() {
   export status
 }
 
-# TODO: we want to run setup/teardown file but have following problems
-# 1. we need to get their definitions which can only be loaded from the preprocessed file
-# 1.1 the preprocessing is defined in bats-exec-test so we don't have it here
-# 1.2 the load command is also defined in bats-exec-test
-# -> it is preferable to run this from bats-exec-test to avoid duplicating the preprocessing/helper commands
-# 2. we need the file setup to be run only once but its results (e.g. conditionally defined variables) 
-#    might need to be present in all tests of the file, not only the first
-# -> evaluate in suite, so that these results are inherited by the subshells
-# 3. prevent environment changes in sourced test files to leak over into other test files
-# -> each file gets its own context
-# 
-# Running the preprocessing here (using shared code with bats-exec-test) requires us to do the clean up ourselves -> more traps
-
 bats_preprocess_source $filename
 bats_run_setup_file
 bats_run_tests
