@@ -49,6 +49,9 @@ fi
 
 trap 'kill 0; exit 1' INT
 
+# create a file that contains all (filtered) tests to run from all files
+TESTS_LIST_FILE="${BATS_RUN_TMPDIR}/test_list_file.txt"
+
 all_tests=()
 for filename in "$@"; do
   if  [[ ! -f "$filename" ]]; then
@@ -64,7 +67,9 @@ for filename in "$@"; do
     fi
     line="${line%$'\r'}"
     line="${line#* }"
-    all_tests+=( "$(printf "%s\t%s" "$filename" "$line")" )
+    test_line=$(printf "%s\t%s" "$filename" "$line")
+    all_tests+=( "$test_line" )
+    printf "%s\n" "$test_line" >> "$TESTS_LIST_FILE"
     if [[ " ${test_names[*]} " == *" $line "* ]]; then
       test_dupes+=("$line")
       continue
@@ -72,7 +77,6 @@ for filename in "$@"; do
     test_names+=("$line")
   done < <(BATS_TEST_FILTER="$filter" bats-preprocess "$filename")
 
-  all_tests=("${all_tests[@]}" "${all_file_tests[@]}")
   if [[ "${#test_dupes[@]}" -ne 0 ]]; then
     printf 'bats warning: duplicate test name(s) in %s: %s\n' "$filename" "${test_dupes[*]}" >&2
   fi
@@ -93,36 +97,12 @@ if [[ "${test_count}" == 0 ]]; then
   exit
 fi
 
-# takes as $1 the name of the file for which the tests should be filtered
-bats_create_test_list_files() {
-  for filename in "$@"; do
-    TESTS_FILE=`mktemp`
-    initial_test_number=$test_number
-    for test_line in "${all_tests[@]}"; do
-      if [[ "${test_line%%$'\t'*}" == "$1" ]]; then
-        test_name="${test_line##*$'\t'}"
-        printf "$test_name"$'\n' >> "$TESTS_FILE"
-        (( ++test_number))
-      fi
-    done
-    printf "%s\t%s\t%d\t%s" "$filename" "$test_name" "$initial_test_number" "$TESTS_FILE"
-  done
-}
-
-bats_run_exec_file_and_delete_tests_file() {
-  bats-exec-file "$@"
-  rm "$4"
-}
-
-test_number=0
-
-if [[ $num_jobs ]]; then
-  (bats_create_test_list_files | parallel bats_run_exec_file_and_delete_tests_file) || status=1
+if [[ "$num_jobs" -gt 1 ]]; then
+  # run all files in parallel, bats-exec-file will make sure to honor num_jobs between all invocations
+  printf "%s\n" "$@" | parallel ${bats_parallel_args} --keep-order --jobs 0 bats-exec-file ${flags[@]} {} "$TESTS_LIST_FILE" || status=1
 else
-  TESTS_FILES=$(bats_create_test_list_files)
-  for TEST_FILE in "$TEST_FILES"; do
-    bats-exec-file "${flags[@]}" $TEST_FILE
-    rm "${TESTS_FILE% *}"
+  for filename in "$@"; do
+    bats-exec-file "${flags[@]}" "$filename" "${TESTS_LIST_FILE}" || status=1
   done
 fi
 

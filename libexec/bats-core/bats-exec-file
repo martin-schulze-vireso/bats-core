@@ -30,8 +30,7 @@ while [[ "$#" -ne 0 ]]; do
 done
 
 filename=$1
-test_number=$2
-TESTS_FILE="$3"
+TESTS_FILE="$2"
 
 if [[ ! -f "$filename" ]]; then
     printf 'Testfile "%s" not found\n' "$filename" >&2
@@ -123,8 +122,20 @@ function teardown_file() {
 bats_run_tests() {
   status=0
   tests_to_run=()
-  while read test_name; do
-    tests_to_run+=("$test_name")
+  local line_number=0
+  local test_number=''
+  while read test_line; do
+    test_file=${test_line%%$'\t'*}
+    test_name=${test_line##*$'\t'}
+    if [[ "$test_file" == "$filename" ]]; then
+      tests_to_run+=("$test_name")
+      # save the first test's number for later iteration
+      # this assumes that tests for a file are stored consecutive in the file!
+      if [[ -z $test_number ]]; then
+        test_number=$line_number
+      fi
+    fi
+    (( ++line_number ))
   done < "$TESTS_FILE"
 
   if [[ "$num_jobs" != 1 ]]; then
