@@ -69,6 +69,13 @@ export BATS_TEST_PATTERN="^[[:blank:]]*@test[[:blank:]]+(.*[^[:blank:]])[[:blank
 export BATS_TEST_FILTER=
 export PATH="$BATS_LIBEXEC:$PATH"
 export BATS_ROOT_PID=$$
+if [[ -z "$TMPDIR" ]]; then
+  export BATS_TMPDIR="/tmp"
+else
+  export BATS_TMPDIR="${TMPDIR%/}"
+fi
+export BATS_RUN_TMPDIR="$BATS_TMPDIR/bats-run-$BATS_ROOT_PID"
+mkdir -p "$BATS_RUN_TMPDIR"
 
 arguments=()
 
