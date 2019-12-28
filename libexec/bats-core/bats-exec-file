@@ -123,7 +123,7 @@ bats_run_tests() {
   status=0
   tests_to_run=()
   local line_number=0
-  local test_number=''
+  test_number=''
   while read test_line; do
     test_file=${test_line%%$'\t'*}
     test_name=${test_line##*$'\t'}
