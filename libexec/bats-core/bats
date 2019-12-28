@@ -197,7 +197,6 @@ test_count_validator() {
     local expected_number_of_tests="${header:3}"
   else
     cat
-    return 1
   fi
   local actual_number_of_tests=0
   while read line; do
