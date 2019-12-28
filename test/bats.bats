@@ -520,3 +520,16 @@ END_OF_ERR_MSG
     currentErrorLine=$((currentErrorLine + linesPerTest))
   done
 }
+
+@test "test count validator catches mismatch and returns non zero" {
+  source "$BATS_ROOT/lib/bats-core/validator.bash"
+  export -f bats_test_count_validator
+  run bash -c "echo $'1..1\n' | bats_test_count_validator"
+  [[ $status -ne 0 ]]
+
+  run bash -c "echo $'1..1\nok 1\nok 2' | bats_test_count_validator"
+  [[ $status -ne 0 ]]
+
+  run bash -c "echo $'1..1\nok 1' | bats_test_count_validator"
+  [[ $status -eq 0 ]]
+}

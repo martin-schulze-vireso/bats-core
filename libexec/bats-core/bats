@@ -185,37 +185,7 @@ if [[ -n "$pretty" ]]; then
   formatter="bats-format-tap-stream"
 fi
 
-
-test_count_validator() {
-  header_pattern='[0-9]+\.\.[0-9]+'
-  IFS= read -r header
-  # repeat the header
-  printf "%s\n" "$header"
-
-  # if we detect a bats plan, extract the number of tests, else forward and exit with error
-  if [[ "$header" =~ $header_pattern ]]; then
-    local expected_number_of_tests="${header:3}"
-  else
-    cat
-  fi
-  local actual_number_of_tests=0
-  while IFS= read -r line; do
-    # forward line
-    printf "%s\n" "$line"
-    case "$line" in
-      'ok '*)
-      (( ++actual_number_of_tests ))
-      ;;
-      'not ok'*)
-      (( ++actual_number_of_tests ))
-      ;;
-    esac
-  done
-  if [[ "${index}" != "${count}" ]]; then
-    printf '# bats warning: Only executed %s of %s tests\n' "$actual_number_of_tests" "$expected_number_of_tests"
-    return 1
-  fi
-}
+source "$BATS_ROOT/lib/bats-core/validator.bash"
 
 set -o pipefail execfail
-exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | test_count_validator | "$formatter"
+exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | bats_test_count_validator | "$formatter"
