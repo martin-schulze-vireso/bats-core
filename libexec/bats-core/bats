@@ -77,6 +77,8 @@ fi
 export BATS_RUN_TMPDIR="$BATS_TMPDIR/bats-run-$BATS_ROOT_PID"
 mkdir -p "$BATS_RUN_TMPDIR"
 
+trap 'rm -rf "$BATS_RUN_TMPDIR"' ERR EXIT
+
 arguments=()
 
 # Unpack single-character options bundled together, e.g. -cr, -pr.
