@@ -6,7 +6,7 @@ extended_syntax_flag=''
 filter=''
 num_jobs=1
 have_gnu_parallel=
-bats_parallel_args=''
+bats_parallel_args=()
 flags=()
 
 while [[ "$#" -ne 0 ]]; do
@@ -30,7 +30,7 @@ while [[ "$#" -ne 0 ]]; do
     flags+=('-x')
     ;;
   --parallel-preserve-environment)
-    bats_parallel_args="--env _"
+    bats_parallel_args=("--env" "_")
     ;;
   *)
     break
@@ -99,7 +99,8 @@ fi
 
 if [[ "$num_jobs" -gt 1 ]]; then
   # run files in parallel to get the maximum pool of parallel tasks
-  printf "%s\n" "$@" | parallel ${bats_parallel_args} --keep-order --jobs $num_jobs bats-exec-file ${flags[@]} {} "$TESTS_LIST_FILE" || status=1
+  # shellcheck disable=SC2086,SC2068
+  printf "%s\n" "$@" | parallel "${bats_parallel_args[@]}" --keep-order --jobs "$num_jobs" bats-exec-file "${flags[@]}" {} "$TESTS_LIST_FILE" || status=1
 else
   for filename in "$@"; do
     bats-exec-file "${flags[@]}" "$filename" "${TESTS_LIST_FILE}" || status=1

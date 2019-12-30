@@ -19,7 +19,6 @@ while [[ "$#" -ne 0 ]]; do
     num_jobs="$1"
     ;;
   -x)
-    extended_syntax_flag='-x'
     flags+=('-x')
     ;;
   *)
@@ -37,32 +36,40 @@ if [[ ! -f "$filename" ]]; then
     exit 1
 fi
 
-BATS_TEST_FILENAME="$filename"
+export BATS_TEST_FILENAME="$filename"
 
+# shellcheck source=lib/bats-core/preprocessing.bash disable=SC2153
 source "$BATS_ROOT/lib/bats-core/preprocessing.bash"
 
 bats_run_setup_file() {
+  # shellcheck source=lib/bats-core/tracing.bash
   source "$BATS_ROOT/lib/bats-core/tracing.bash"
+  # shellcheck source=lib/bats-core/test_functions.bash
   source "$BATS_ROOT/lib/bats-core/test_functions.bash"
 
   exec 3<&1
 
   BATS_STACK_TRACE=()
-  BATS_CURRENT_STACK_TRACE=()
+  # shellcheck disable=2034
+  BATS_CURRENT_STACK_TRACE=() # used in tracing.bash
 
   # these are defined only to avoid errors when referencing undefined variables down the line
-  BATS_TEST_NAME=
-  BATS_TEST_COMPLETED=
+  # shellcheck disable=2034
+  BATS_TEST_NAME= # used in tracing.bash
+  # shellcheck disable=2034
+  BATS_TEST_COMPLETED= # used in tracing.bash
 
   BATS_SETUP_FILE_COMPLETED=
   BATS_TEARDOWN_FILE_COMPLETED=
-  BATS_ERROR_STATUS=
+  # shellcheck disable=2034
+  BATS_ERROR_STATUS= # used in tracing.bash
   trap 'bats_debug_trap "$BASH_SOURCE"' DEBUG
   trap 'bats_error_trap' ERR
   trap 'bats_file_teardown_trap' EXIT
 
   touch "$BATS_OUT"
   # get the setup_file/teardown_file functions for this file (if it has them)
+  # shellcheck disable=SC1090
   source "$BATS_TEST_SOURCE"
   setup_file >>"$BATS_OUT" 2>&1
 
@@ -124,7 +131,7 @@ bats_run_tests() {
   tests_to_run=()
   local line_number=0
   test_number=''
-  while read test_line; do
+  while read -r test_line; do
     test_file=${test_line%%$'\t'*}
     test_name=${test_line##*$'\t'}
     if [[ "$test_file" == "$filename" ]]; then
@@ -148,7 +155,8 @@ bats_run_tests() {
         # parallelize across files using parallel's semaphore mode
         # use --results to gather output in separate files
         # use --fg mode to retrieve exit codes (all non zero exit codes seem to mapped to 1), but which requires us to suppress its output
-        parallel --semaphore -j "$num_jobs" ${bats_parallel_args} --fg --results "$output_folder/$test_number/{}" -- bats-exec-test "${flags[@]}" "$filename" "$test_name" "$test_number" 2>/dev/null >/dev/null &
+        # shellcheck disable=SC2154 #bats_parallel_args is inherited from exec-suite
+        parallel --semaphore -j "$num_jobs" "${bats_parallel_args[@]}" --fg --results "$output_folder/$test_number/{}" -- bats-exec-test "${flags[@]}" "$filename" "$test_name" "$test_number" 2>/dev/null >/dev/null &
         pid=$!
         test_pids_and_numbers+=("$pid,$test_number")
       fi
@@ -158,7 +166,7 @@ bats_run_tests() {
       test_number=${test_pid_and_number##*,}
       test_output_dir="$output_folder/$test_number"
       # fetch the return code
-      wait $test_pid || status=1
+      wait "$test_pid" || status=1
       # wait for tests to finish in the order they were started and output their results as they come in
       cat "$test_output_dir/stdout"
       # additionally output stderr as parallel does by default
@@ -180,7 +188,7 @@ bats_run_tests() {
   export status
 }
 
-bats_preprocess_source $filename
+bats_preprocess_source "$filename"
 bats_run_setup_file
 bats_run_tests
 bats_run_teardown_file

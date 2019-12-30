@@ -32,7 +32,7 @@ Usage: $cmd [-cr] [-f <regex>] [-j <jobs>] [-p | -t] <test>...
   -j, --jobs       Number of parallel jobs to run (requires GNU parallel)
   --parallel-preserve-environment 
                    Preserve the environment When running via GNU parallel (run 
-                   `parallel --record-env` before!)
+                   \`parallel --record-env\` before!)
   -p, --pretty     Show results in pretty format (default for terminals)
   -r, --recursive  Include tests in subdirectories
   -t, --tap        Show results in TAP format
@@ -185,6 +185,7 @@ if [[ -n "$pretty" ]]; then
   formatter="bats-format-tap-stream"
 fi
 
+# shellcheck source=lib/bats-core/validator.bash
 source "$BATS_ROOT/lib/bats-core/validator.bash"
 
 set -o pipefail execfail

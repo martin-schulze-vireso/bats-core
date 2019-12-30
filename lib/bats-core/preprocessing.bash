@@ -1,6 +1,9 @@
+#!/usr/bin/env bash
+
 BATS_TMPNAME="$BATS_RUN_TMPDIR/bats.$$"
 BATS_PARENT_TMPNAME="$BATS_RUN_TMPDIR/bats.$PPID"
-BATS_OUT="${BATS_TMPNAME}.out"
+# shellcheck disable=SC2034
+BATS_OUT="${BATS_TMPNAME}.out" # used in bats-exec-file
 
 bats_preprocess_source() {
   BATS_TEST_SOURCE="${BATS_TMPNAME}.src"

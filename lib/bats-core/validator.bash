@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 bats_test_count_validator() {
   header_pattern='[0-9]+\.\.[0-9]+'
   IFS= read -r header
