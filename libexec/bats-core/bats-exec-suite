@@ -51,6 +51,7 @@ trap 'kill 0; exit 1' INT
 
 # create a file that contains all (filtered) tests to run from all files
 TESTS_LIST_FILE="${BATS_RUN_TMPDIR}/test_list_file.txt"
+CONTENTS=$(cat $TESTS_LIST_FILE || true)
 
 all_tests=()
 for filename in "$@"; do
@@ -82,9 +83,6 @@ for filename in "$@"; do
   fi
 done
 
-echo "Test lists file: $TESTS_LIST_FILE"
-cat "$TESTS_LIST_FILE"
-
 test_count="${#all_tests[@]}"
 
 if [[ -n "$count_only_flag" ]]; then
@@ -95,6 +93,12 @@ fi
 status=0
 printf '1..%d\n' "${test_count}"
 
+if [[ -n "$CONTENTS" ]]; then
+  echo $'Previous contents:\n'"$CONTENTS"
+fi
+
+echo "Test lists file: $TESTS_LIST_FILE"
+cat "$TESTS_LIST_FILE"
 # No point on continuing if there's no tests.
 if [[ "${test_count}" == 0 ]]; then
   exit
