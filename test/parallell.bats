@@ -49,3 +49,16 @@ setup() {
   # linearizing between files, which requires at least 12s
   [[ "$duration" -lt 12 ]]
 }
+
+@test "setup_file is not over parallelized" {
+  SECONDS=0
+  # run 4 files with 3s sleeps in setup_file with parallelity of 2 -> serialize 2
+  run bats --jobs 2 "$FIXTURE_ROOT/setup_file"
+  duration="$SECONDS"
+  echo "Took $duration seconds"
+  [ "$status" -eq 0 ]
+  # the serialization should lead to at least 6s runtime
+  [[ $duration -ge 6 ]]
+  # parallelization should at least get rid of 1/4th the total runtime
+  [[ $duration -lt 9 ]]
+}

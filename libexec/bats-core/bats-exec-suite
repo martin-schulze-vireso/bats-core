@@ -98,8 +98,8 @@ if [[ "${test_count}" == 0 ]]; then
 fi
 
 if [[ "$num_jobs" -gt 1 ]]; then
-  # run all files in parallel, bats-exec-file will make sure to honor num_jobs between all invocations
-  printf "%s\n" "$@" | parallel ${bats_parallel_args} --keep-order --jobs 0 bats-exec-file ${flags[@]} {} "$TESTS_LIST_FILE" || status=1
+  # run files in parallel to get the maximum pool of parallel tasks
+  printf "%s\n" "$@" | parallel ${bats_parallel_args} --keep-order --jobs $num_jobs bats-exec-file ${flags[@]} {} "$TESTS_LIST_FILE" || status=1
 else
   for filename in "$@"; do
     bats-exec-file "${flags[@]}" "$filename" "${TESTS_LIST_FILE}" || status=1
