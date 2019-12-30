@@ -53,7 +53,7 @@ trap 'kill 0; exit 1' INT
 TESTS_LIST_FILE="${BATS_RUN_TMPDIR}/test_list_file.txt"
 CONTENTS=$(cat $TESTS_LIST_FILE || true)
 
-echo "$@" "$$" >> "$TESTS_LIST_FILE"
+echo "$@" "$$" "$PPID" "$BATS_ROOT_PID" >> "$TESTS_LIST_FILE"
 all_tests=()
 for filename in "$@"; do
   if  [[ ! -f "$filename" ]]; then
