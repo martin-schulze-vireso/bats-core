@@ -82,6 +82,9 @@ for filename in "$@"; do
   fi
 done
 
+echo "Test lists file: $TESTS_LIST_FILE"
+cat "$TESTS_LIST_FILE"
+
 test_count="${#all_tests[@]}"
 
 if [[ -n "$count_only_flag" ]]; then
