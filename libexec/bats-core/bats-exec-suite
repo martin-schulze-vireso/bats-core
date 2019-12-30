@@ -116,4 +116,6 @@ else
   done
 fi
 
+echo "Finished $$ $BATS_ROOT_PID" >> "$TESTS_LIST_FILE"
+
 exit "$status"
