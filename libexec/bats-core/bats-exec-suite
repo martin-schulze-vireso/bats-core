@@ -101,8 +101,6 @@ fi
 echo "Test lists file: $TESTS_LIST_FILE"
 cat "$TESTS_LIST_FILE"
 
-ps -ef | grep bats
-
 # No point on continuing if there's no tests.
 if [[ "${test_count}" == 0 ]]; then
   exit
