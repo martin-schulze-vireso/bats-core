@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Writing tests &#8212; bats-core 1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Docker Usage Guide" href="docker-usage.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="writing-tests">
+<h1>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this headline">¶</a></h1>
+<p>Each Bats test file is evaluated <em>n+1</em> times, where <em>n</em> is the number of
+test cases in the file. The first run counts the number of test cases,
+then iterates over the test cases and executes each one in its own
+process.</p>
+<p>For more details about how Bats evaluates test files, see <a class="reference external" href="https://github.com/bats-core/bats-core/wiki/Bats-Evaluation-Process">Bats Evaluation
+Process</a> on the wiki.</p>
+<p>For sample test files, see <a class="reference external" href="/docs/examples">examples</a>.</p>
+<div class="section" id="run-test-other-commands">
+<h2><code class="docutils literal notranslate"><span class="pre">run</span></code>: Test other commands<a class="headerlink" href="#run-test-other-commands" title="Permalink to this headline">¶</a></h2>
+<p>Many Bats tests need to run a command and then make assertions about its exit
+status and output. Bats includes a <code class="docutils literal notranslate"><span class="pre">run</span></code> helper that invokes its arguments as a
+command, saves the exit status and output into special global variables, and
+then returns with a <code class="docutils literal notranslate"><span class="pre">0</span></code> status code so you can continue to make assertions in
+your test case.</p>
+<p>For example, let’s say you’re testing that the <code class="docutils literal notranslate"><span class="pre">foo</span></code> command, when passed a
+nonexistent filename, exits with a <code class="docutils literal notranslate"><span class="pre">1</span></code> status code and prints an error message.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@test <span class="s2">&quot;invoking foo with a nonexistent file prints an error&quot;</span> <span class="o">{</span>
+  run foo nonexistent_filename
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">1</span> <span class="o">]</span>
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;foo: no such file &#39;nonexistent_filename&#39;&quot;</span> <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">$status</span></code> variable contains the status code of the command, and the
+<code class="docutils literal notranslate"><span class="pre">$output</span></code> variable contains the combined contents of the command’s standard
+output and standard error streams.</p>
+<p>A third special variable, the <code class="docutils literal notranslate"><span class="pre">$lines</span></code> array, is available for easily accessing
+individual lines of output. For example, if you want to test that invoking <code class="docutils literal notranslate"><span class="pre">foo</span></code>
+without any arguments prints usage information on the first line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@test <span class="s2">&quot;invoking foo without arguments prints usage&quot;</span> <span class="o">{</span>
+  run foo
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">1</span> <span class="o">]</span>
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">lines</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;usage: foo &lt;filename&gt;&quot;</span> <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">run</span></code> helper executes its argument(s) in a subshell, so if
+writing tests against environmental side-effects like a variable’s value
+being changed, these changes will not persist after <code class="docutils literal notranslate"><span class="pre">run</span></code> completes.</p>
+<div class="section" id="when-not-to-use-run">
+<h3>When not to use <code class="docutils literal notranslate"><span class="pre">run</span></code><a class="headerlink" href="#when-not-to-use-run" title="Permalink to this headline">¶</a></h3>
+<p>In some cases, using <code class="docutils literal notranslate"><span class="pre">run</span></code> is redundant and results in a longer and less readable code.
+Here are a few examples.</p>
+<ol class="simple">
+<li><p>In case you only need to check the command succeeded, it is better to not use run, since</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run <span class="nb">command</span> args ...
+<span class="nb">echo</span> <span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span>
+<span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">command</span> args ...
+</pre></div>
+</div>
+<p>since bats sets <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">-e</span></code> for all tests.</p>
+<ol class="simple">
+<li><p>In case you want to hide the command output (which <code class="docutils literal notranslate"><span class="pre">run</span></code> does), use output redirection instead.</p></li>
+</ol>
+<p>This</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run <span class="nb">command</span> ...
+<span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">command</span> ... &gt;/dev/null
+</pre></div>
+</div>
+<p>Note that the output is only shown if the test case fails.</p>
+<ol class="simple">
+<li><p>In case you need to assign command output to a variable (and maybe check
+the command exit status), it is better to not use run, since</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run <span class="nb">command</span> args ...
+<span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+<span class="nv">var</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">var</span><span class="o">=</span><span class="k">$(</span><span class="nb">command</span> args ...<span class="k">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="load-share-common-code">
+<h2><code class="docutils literal notranslate"><span class="pre">load</span></code>: Share common code<a class="headerlink" href="#load-share-common-code" title="Permalink to this headline">¶</a></h2>
+<p>You may want to share common code across multiple test files. Bats includes a
+convenient <code class="docutils literal notranslate"><span class="pre">load</span></code> command for sourcing a Bash source file relative to the
+location of the current test file. For example, if you have a Bats test in
+<code class="docutils literal notranslate"><span class="pre">test/foo.bats</span></code>, the command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>load test_helper.bash
+</pre></div>
+</div>
+<p>will source the script <code class="docutils literal notranslate"><span class="pre">test/test_helper.bash</span></code> in your test file (limitations
+apply, see below). This can be useful for sharing functions to set up your
+environment or load fixtures. <code class="docutils literal notranslate"><span class="pre">load</span></code> delegates to Bash’s <code class="docutils literal notranslate"><span class="pre">source</span></code> command after
+resolving relative paths.</p>
+<p>As pointed out by &#64;iatrou in https://www.tldp.org/LDP/abs/html/declareref.html,
+using the <code class="docutils literal notranslate"><span class="pre">declare</span></code> builtin restricts scope of a variable. Thus, since actual
+<code class="docutils literal notranslate"><span class="pre">source</span></code>-ing is performed in context of the <code class="docutils literal notranslate"><span class="pre">load</span></code> function, <code class="docutils literal notranslate"><span class="pre">declare</span></code>d symbols
+will <em>not</em> be made available to callers of <code class="docutils literal notranslate"><span class="pre">load</span></code>.</p>
+<blockquote>
+<div><p>For backwards compatibility <code class="docutils literal notranslate"><span class="pre">load</span></code> first searches for a file ending in
+<code class="docutils literal notranslate"><span class="pre">.bash</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">load</span> <span class="pre">test_helper</span></code> searches for <code class="docutils literal notranslate"><span class="pre">test_helper.bash</span></code> before
+it looks for <code class="docutils literal notranslate"><span class="pre">test_helper</span></code>). This behaviour is deprecated and subject to
+change, please use exact filenames instead.</p>
+</div></blockquote>
+</div>
+<div class="section" id="skip-easily-skip-tests">
+<h2><code class="docutils literal notranslate"><span class="pre">skip</span></code>: Easily skip tests<a class="headerlink" href="#skip-easily-skip-tests" title="Permalink to this headline">¶</a></h2>
+<p>Tests can be skipped by using the <code class="docutils literal notranslate"><span class="pre">skip</span></code> command at the point in a test you wish
+to skip.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@test <span class="s2">&quot;A test I don&#39;t want to execute for now&quot;</span> <span class="o">{</span>
+  skip
+  run foo
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Optionally, you may include a reason for skipping:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@test <span class="s2">&quot;A test I don&#39;t want to execute for now&quot;</span> <span class="o">{</span>
+  skip <span class="s2">&quot;This command will return zero soon, but not now&quot;</span>
+  run foo
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Or you can skip conditionally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@test <span class="s2">&quot;A test which should run&quot;</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">[</span> foo !<span class="o">=</span> bar <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    skip <span class="s2">&quot;foo isn&#39;t bar&quot;</span>
+  <span class="k">fi</span>
+
+  run foo
+  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$status</span><span class="s2">&quot;</span> -eq <span class="m">0</span> <span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">setup</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown</span></code> hooks still run for skipped tests.</p>
+</div>
+<div class="section" id="setup-and-teardown-pre-and-post-test-hooks">
+<h2><code class="docutils literal notranslate"><span class="pre">setup</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown</span></code>: Pre- and post-test hooks<a class="headerlink" href="#setup-and-teardown-pre-and-post-test-hooks" title="Permalink to this headline">¶</a></h2>
+<p>You can define special <code class="docutils literal notranslate"><span class="pre">setup</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown</span></code> functions, which run before and
+after each test case, respectively. Use these to load fixtures, set up your
+environment, and clean up when you’re done.</p>
+<p>You can also define <code class="docutils literal notranslate"><span class="pre">setup_file</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown_file</span></code>, which will run once before the first test’s <code class="docutils literal notranslate"><span class="pre">setup</span></code> and after the last test’s <code class="docutils literal notranslate"><span class="pre">teardown</span></code> for the containing file. Variables that are exported in <code class="docutils literal notranslate"><span class="pre">setup_file</span></code> will be visible to all following functions (<code class="docutils literal notranslate"><span class="pre">setup</span></code>, the test itself, <code class="docutils literal notranslate"><span class="pre">teardown</span></code>, <code class="docutils literal notranslate"><span class="pre">teardown_file</span></code>).</p>
+<details>
+  <Summary>Example of setup/setup_file/teardown/teardown_file call order</summary>
+For example the following call order would result from two files (file 1 with tests 1 and 2, and file 2 with test3) beeing tested:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">setup_file</span> <span class="c1"># from file 1, on entering file 1</span>
+  <span class="n">setup</span>
+    <span class="n">test1</span>
+  <span class="n">teardown</span>
+  <span class="n">setup</span>
+    <span class="n">test2</span>
+  <span class="n">teardown</span>
+<span class="n">teardown_file</span> <span class="c1"># from file 1, on leaving file 1</span>
+<span class="n">setup_file</span> <span class="c1"># from file 2,  on enter file 2</span>
+  <span class="n">setup</span>
+    <span class="n">test3</span>
+  <span class="n">teardown</span>
+<span class="n">teardown_file</span> <span class="c1"># from file 2,  on leaving file 2</span>
+</pre></div>
+</div>
+</details></div>
+<div class="section" id="code-outside-of-test-cases">
+<h2>Code outside of test cases<a class="headerlink" href="#code-outside-of-test-cases" title="Permalink to this headline">¶</a></h2>
+<p>You can include code in your test file outside of <code class="docutils literal notranslate"><span class="pre">&#64;test</span></code> functions.  For
+example, this may be useful if you want to check for dependencies and fail
+immediately if they’re not present. However, any output that you print in code
+outside of <code class="docutils literal notranslate"><span class="pre">&#64;test</span></code>, <code class="docutils literal notranslate"><span class="pre">setup</span></code> or <code class="docutils literal notranslate"><span class="pre">teardown</span></code> functions must be redirected to
+<code class="docutils literal notranslate"><span class="pre">stderr</span></code> (<code class="docutils literal notranslate"><span class="pre">&gt;&amp;2</span></code>). Otherwise, the output may cause Bats to fail by polluting the
+TAP stream on <code class="docutils literal notranslate"><span class="pre">stdout</span></code>.</p>
+</div>
+<div class="section" id="file-descriptor-3-read-this-if-bats-hangs">
+<h2>File descriptor 3 (read this if Bats hangs)<a class="headerlink" href="#file-descriptor-3-read-this-if-bats-hangs" title="Permalink to this headline">¶</a></h2>
+<p>Bats makes a separation between output from the code under test and output that
+forms the TAP stream (which is produced by Bats internals). This is done in
+order to produce TAP-compliant output. In the <a class="reference external" href="#printing-to-the-terminal">Printing to the
+terminal</a> section, there are details on how to use
+file descriptor 3 to print custom text properly.</p>
+<p>A side effect of using file descriptor 3 is that, under some circumstances, it
+can cause Bats to block and execution to seem dead without reason. This can
+happen if a child process is spawned in the background from a test. In this
+case, the child process will inherit file descriptor 3. Bats, as the parent
+process, will wait for the file descriptor to be closed by the child process
+before continuing execution. If the child process takes a lot of time to
+complete (eg if the child process is a <code class="docutils literal notranslate"><span class="pre">sleep</span> <span class="pre">100</span></code> command or a background
+service that will run indefinitely), Bats will be similarly blocked for the same
+amount of time.</p>
+<p><strong>To prevent this from happening, close FD 3 explicitly when running any command
+that may launch long-running child processes</strong>, e.g. <code class="docutils literal notranslate"><span class="pre">command_name</span> <span class="pre">3&gt;&amp;-</span></code> .</p>
+</div>
+<div class="section" id="printing-to-the-terminal">
+<h2>Printing to the terminal<a class="headerlink" href="#printing-to-the-terminal" title="Permalink to this headline">¶</a></h2>
+<p>Bats produces output compliant with [version 12 of the TAP protocol][TAP]. The
+produced TAP stream is by default piped to a pretty formatter for human
+consumption, but if Bats is called with the <code class="docutils literal notranslate"><span class="pre">-t</span></code> flag, then the TAP stream is
+directly printed to the console.</p>
+<p>This has implications if you try to print custom text to the terminal. As
+mentioned in <a class="reference external" href="#file-descriptor-3-read-this-if-bats-hangs">File descriptor 3</a>,
+bats provides a special file descriptor, <code class="docutils literal notranslate"><span class="pre">&amp;3</span></code>, that you should use to print
+your custom text. Here are some detailed guidelines to refer to:</p>
+<ul class="simple">
+<li><p>Printing <strong>from within a test function</strong>:</p>
+<ul>
+<li><p>To have text printed from within a test function you need to redirect the
+output to file descriptor 3, eg <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">'text'</span> <span class="pre">&gt;&amp;3</span></code>. This output will become
+part of the TAP stream. You are encouraged to prepend text printed this way
+with a hash (eg <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">'#</span> <span class="pre">text'</span> <span class="pre">&gt;&amp;3</span></code>) in order to produce 100% TAP compliant
+output. Otherwise, depending on the 3rd-party tools you use to analyze the
+TAP stream, you can encounter unexpected behavior or errors.</p></li>
+<li><p>The pretty formatter that Bats uses by default to process the TAP stream
+will filter out and not print text output to file descriptor 3.</p></li>
+<li><p>Text that is output directly to stdout or stderr (file descriptor 1 or 2),
+ie <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">'text'</span></code> is considered part of the test function output and is
+printed only on test failures for diagnostic purposes, regardless of the
+formatter used (TAP or pretty).</p></li>
+</ul>
+</li>
+<li><p>Printing <strong>from within the <code class="docutils literal notranslate"><span class="pre">setup</span></code> or <code class="docutils literal notranslate"><span class="pre">teardown</span></code> functions</strong>: The same hold
+true as for printing with test functions.</p></li>
+<li><p>Printing <strong>outside test or <code class="docutils literal notranslate"><span class="pre">setup</span></code>/<code class="docutils literal notranslate"><span class="pre">teardown</span></code> functions</strong>:</p>
+<ul>
+<li><p>Regardless of where text is redirected to (stdout, stderr or file descriptor
+3) text is immediately visible in the terminal.</p></li>
+<li><p>Text printed in such a way, will disable pretty formatting. Also, it will
+make output non-compliant with the TAP spec. The reason for this is that
+each test file is evaluated n+1 times (as mentioned
+<a class="reference external" href="#writing-tests">earlier</a>). The first run will cause such output to be
+produced before the <a class="reference external" href="https://testanything.org/tap-specification.html#the-plan"><em>plan line</em></a> is printed, contrary to the spec
+that requires the <em>plan line</em> to be either the first or the last line of the
+output.</p></li>
+<li><p>Due to internal pipes/redirects, output to stderr is always printed first.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="special-variables">
+<h2>Special variables<a class="headerlink" href="#special-variables" title="Permalink to this headline">¶</a></h2>
+<p>There are several global variables you can use to introspect on Bats tests:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_FILENAME</span></code> is the fully expanded path to the Bats test file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_DIRNAME</span></code> is the directory in which the Bats test file is located.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_NAMES</span></code> is an array of function names for each test case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_NAME</span></code> is the name of the function containing the current test
+case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_DESCRIPTION</span></code> is the description of the current test case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TEST_NUMBER</span></code> is the (1-based) index of the current test case in the
+test file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_SUITE_TEST_NUMBER</span></code> is the (1-based) index of the current test case in
+the test suite (over all files).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$BATS_TMPDIR</span></code> is the location to a directory that may be used to store
+temporary files.</p></li>
+</ul>
+</div>
+<div class="section" id="libraries-and-add-ons">
+<h2>Libraries and Add-ons<a class="headerlink" href="#libraries-and-add-ons" title="Permalink to this headline">¶</a></h2>
+<p>Bats supports loading external assertion libraries and helpers. Those under <code class="docutils literal notranslate"><span class="pre">bats-core</span></code> are officially supported libraries (integration tests welcome!):</p>
+<ul class="simple">
+<li><p>https://github.com/bats-core/bats-assert - common assertions for Bats</p></li>
+<li><p>https://github.com/bats-core/bats-support - supporting library for Bats test helpers</p></li>
+<li><p>https://github.com/bats-core/bats-file - common filesystem assertions for Bats</p></li>
+<li><p>https://github.com/bats-core/bats-detik - e2e tests of applications in K8s environments</p></li>
+</ul>
+<p>and some external libraries, supported on a “best-effort” basis:</p>
+<ul class="simple">
+<li><p>https://github.com/ztombol/bats-docs (still relevant? Requires review)</p></li>
+<li><p>https://github.com/grayhemp/bats-mock (as per #147)</p></li>
+<li><p>https://github.com/jasonkarns/bats-mock (how is this different from grayhemp/bats-mock?)</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bats-core</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docker-usage.html">Docker Usage Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Writing tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#run-test-other-commands"><code class="docutils literal notranslate"><span class="pre">run</span></code>: Test other commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#load-share-common-code"><code class="docutils literal notranslate"><span class="pre">load</span></code>: Share common code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#skip-easily-skip-tests"><code class="docutils literal notranslate"><span class="pre">skip</span></code>: Easily skip tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-and-teardown-pre-and-post-test-hooks"><code class="docutils literal notranslate"><span class="pre">setup</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown</span></code>: Pre- and post-test hooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-outside-of-test-cases">Code outside of test cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-descriptor-3-read-this-if-bats-hangs">File descriptor 3 (read this if Bats hangs)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#printing-to-the-terminal">Printing to the terminal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#special-variables">Special variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#libraries-and-add-ons">Libraries and Add-ons</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="docker-usage.html" title="previous chapter">Docker Usage Guide</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+<h3>Versions</h3>
+<ul>
+  <li><a href="writing-tests.html">master</a></li>
+  <li><a href="https://github.com/bats-core/bats-core/blob/master/docs/versions.md">older versions</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, bats-core origanization.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/writing-tests.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

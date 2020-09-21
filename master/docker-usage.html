@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Docker Usage Guide &#8212; bats-core 1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Writing tests" href="writing-tests.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="docker-usage-guide">
+<h1>Docker Usage Guide<a class="headerlink" href="#docker-usage-guide" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="#docker-usage-guide">Docker Usage Guide</a></p>
+<ul>
+<li><p><a class="reference external" href="#basic-usage">Basic Usage</a></p></li>
+<li><p><a class="reference external" href="#docker-gotchas">Docker Gotchas</a></p></li>
+<li><p><a class="reference external" href="#extending-from-the-base-image">Extending from the base image</a></p></li>
+</ul>
+</li>
+</ul>
+<div class="section" id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>To build and run <code class="docutils literal notranslate"><span class="pre">bats</span></code>’ own tests:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/bats-core/bats-core.git
+Cloning into <span class="s1">&#39;bats-core&#39;</span>...
+remote: Counting objects: <span class="m">1222</span>, <span class="k">done</span>.
+remote: Compressing objects: <span class="m">100</span>% <span class="o">(</span><span class="m">53</span>/53<span class="o">)</span>, <span class="k">done</span>.
+remote: Total <span class="m">1222</span> <span class="o">(</span>delta <span class="m">34</span><span class="o">)</span>, reused <span class="m">55</span> <span class="o">(</span>delta <span class="m">21</span><span class="o">)</span>, pack-reused <span class="m">1146</span>
+Receiving objects: <span class="m">100</span>% <span class="o">(</span><span class="m">1222</span>/1222<span class="o">)</span>, <span class="m">327</span>.28 KiB <span class="p">|</span> <span class="m">1</span>.70 MiB/s, <span class="k">done</span>.
+Resolving deltas: <span class="m">100</span>% <span class="o">(</span><span class="m">661</span>/661<span class="o">)</span>, <span class="k">done</span>.
+
+$ <span class="nb">cd</span> bats-core/
+$ docker build --tag bats:latest .
+...
+$ docker run -it bats:latest --formatter tap /opt/bats/test
+</pre></div>
+</div>
+<p>To mount your tests into the container, first build the image as above. Then, for example with <code class="docutils literal notranslate"><span class="pre">bats</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker run -it -v <span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">:/opt/bats&quot;</span> bats:latest /opt/bats/test
+</pre></div>
+</div>
+<p>This runs the <code class="docutils literal notranslate"><span class="pre">test/</span></code> directory from the bats-core repository inside the bats Docker container.</p>
+<p>For test suites that are intended to run in isolation from the project (i.e. the tests do not depend on project files outside of the test directory), you can mount the test directory by itself and execute the tests like so:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker run -it -v <span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/test:/test&quot;</span> bats:latest /test
+</pre></div>
+</div>
+</div>
+<div class="section" id="docker-gotchas">
+<h2>Docker Gotchas<a class="headerlink" href="#docker-gotchas" title="Permalink to this headline">¶</a></h2>
+<p>Relying on functionality provided by your environment (ssh keys or agent, installed binaries, fixtures outside the mounted test directory) will fail when running inside Docker.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--interactive</span></code>/<code class="docutils literal notranslate"><span class="pre">-i</span></code> attaches an interactive terminal and is useful to kill hanging processes (otherwise has to be done via docker stop command). <code class="docutils literal notranslate"><span class="pre">--tty</span></code>/<code class="docutils literal notranslate"><span class="pre">-t</span></code> simulates a tty (often not used, but most similar to test runs from a Bash prompt). Interactivity is important to a user, but not a build, and TTYs are probably more important to a headless build. Everything’s least-surprising to a new Docker use if both are used.</p>
+</div>
+<div class="section" id="extending-from-the-base-image">
+<h2>Extending from the base image<a class="headerlink" href="#extending-from-the-base-image" title="Permalink to this headline">¶</a></h2>
+<p>Docker operates on a principle of isolation, and bundles all dependencies required into the Docker image. These can be mounted in at runtime (for test files, configuration, etc). For binary dependencies it may be better to extend the base Docker image with further tools and files.</p>
+<div class="highlight-dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span> <span class="s">bats</span>
+
+<span class="k">RUN</span> <span class="se">\ </span>
+  apk <span class="se">\</span>
+  --no-cache <span class="se">\</span>
+  --update <span class="se">\</span>
+  add <span class="se">\</span>
+  openssh 
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bats-core</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Docker Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-gotchas">Docker Gotchas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-from-the-base-image">Extending from the base image</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="writing-tests.html">Writing tests</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="usage.html" title="previous chapter">Usage</a></li>
+      <li>Next: <a href="writing-tests.html" title="next chapter">Writing tests</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+<h3>Versions</h3>
+<ul>
+  <li><a href="docker-usage.html">master</a></li>
+  <li><a href="https://github.com/bats-core/bats-core/blob/master/docs/versions.md">older versions</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, bats-core origanization.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/docker-usage.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

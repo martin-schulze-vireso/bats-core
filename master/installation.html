@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Installation &#8212; bats-core 1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Welcome to bats-core’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="supported-bash-versions">
+<h2>Supported Bash versions<a class="headerlink" href="#supported-bash-versions" title="Permalink to this headline">¶</a></h2>
+<p>The following is a list of Bash versions that are currently supported by Bats.
+This list is composed of platforms that Bats has been tested on and is known to
+work on without issues.</p>
+<ul class="simple">
+<li><p>Bash versions:</p>
+<ul>
+<li><p>Everything from <code class="docutils literal notranslate"><span class="pre">3.2.57(1)</span></code> and higher (macOS’s highest version)</p></li>
+</ul>
+</li>
+<li><p>Operating systems:</p>
+<ul>
+<li><p>Arch Linux</p></li>
+<li><p>Alpine Linux</p></li>
+<li><p>Ubuntu Linux</p></li>
+<li><p>FreeBSD <code class="docutils literal notranslate"><span class="pre">10.x</span></code> and <code class="docutils literal notranslate"><span class="pre">11.x</span></code></p></li>
+<li><p>macOS</p></li>
+<li><p>Windows 10</p></li>
+</ul>
+</li>
+<li><p>Latest version for the following Windows platforms:</p>
+<ul>
+<li><p>Git for Windows Bash (MSYS2 based)</p></li>
+<li><p>Windows Subsystem for Linux</p></li>
+<li><p>MSYS2</p></li>
+<li><p>Cygwin</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="homebrew">
+<h2>Homebrew<a class="headerlink" href="#homebrew" title="Permalink to this headline">¶</a></h2>
+<p>On macOS, you can install <a class="reference external" href="https://brew.sh/">Homebrew</a> if you haven’t already,
+then run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ brew install bats-core
+</pre></div>
+</div>
+</div>
+<div class="section" id="npm">
+<h2>npm<a class="headerlink" href="#npm" title="Permalink to this headline">¶</a></h2>
+<p>You can install the <a class="reference external" href="https://www.npmjs.com/package/bats">Bats npm package</a> via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># To install globally:
+$ npm install -g bats
+
+# To install into your project and save it as one of the &quot;devDependencies&quot; in
+# your package.json:
+$ npm install --save-dev bats
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-bats-from-source">
+<h2>Installing Bats from source<a class="headerlink" href="#installing-bats-from-source" title="Permalink to this headline">¶</a></h2>
+<p>Check out a copy of the Bats repository. Then, either add the Bats <code class="docutils literal notranslate"><span class="pre">bin</span></code>
+directory to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>, or run the provided <code class="docutils literal notranslate"><span class="pre">install.sh</span></code> command with the
+location to the prefix in which you want to install Bats. For example, to
+install Bats into <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/bats-core/bats-core.git
+$ cd bats-core
+$ ./install.sh /usr/local
+</pre></div>
+</div>
+<p><strong>Note:</strong> You may need to run <code class="docutils literal notranslate"><span class="pre">install.sh</span></code> with <code class="docutils literal notranslate"><span class="pre">sudo</span></code> if you do not have
+permission to write to the installation prefix.</p>
+</div>
+<div class="section" id="installing-bats-from-source-onto-windows-git-bash">
+<h2>Installing Bats from source onto Windows Git Bash<a class="headerlink" href="#installing-bats-from-source-onto-windows-git-bash" title="Permalink to this headline">¶</a></h2>
+<p>Check out a copy of the Bats repository and install it to <code class="docutils literal notranslate"><span class="pre">$HOME</span></code>. This
+will place the <code class="docutils literal notranslate"><span class="pre">bats</span></code> executable in <code class="docutils literal notranslate"><span class="pre">$HOME/bin</span></code>, which should already be
+in <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/bats-core/bats-core.git
+$ cd bats-core
+$ ./install.sh $HOME
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-bats-in-docker">
+<h2>Running Bats in Docker<a class="headerlink" href="#running-bats-in-docker" title="Permalink to this headline">¶</a></h2>
+<p>There is an official image on the Docker Hub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run -it bats/bats:latest --version
+</pre></div>
+</div>
+<div class="section" id="building-a-docker-image">
+<h3>Building a Docker image<a class="headerlink" href="#building-a-docker-image" title="Permalink to this headline">¶</a></h3>
+<p>Check out a copy of the Bats repository, then build a container image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/bats-core/bats-core.git
+$ cd bats-core
+$ docker build --tag bats/bats:latest .
+</pre></div>
+</div>
+<p>This creates a local Docker image called <code class="docutils literal notranslate"><span class="pre">bats/bats:latest</span></code> based on <a class="reference external" href="https://github.com/gliderlabs/docker-alpine/blob/master/docs/usage">Alpine
+Linux</a>
+(to push to private registries, tag it with another organisation, e.g.
+<code class="docutils literal notranslate"><span class="pre">my-org/bats:latest</span></code>).</p>
+<p>To run Bats’ internal test suite (which is in the container image at
+<code class="docutils literal notranslate"><span class="pre">/opt/bats/test</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run -it bats/bats:latest /opt/bats/test
+</pre></div>
+</div>
+<p>To run a test suite from a directory called <code class="docutils literal notranslate"><span class="pre">test</span></code> in the current directory of
+your local machine, mount in a volume and direct Bats to its path inside the
+container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run -it -v &quot;${PWD}:/code&quot; bats/bats:latest test
+</pre></div>
+</div>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">/code</span></code> is the working directory of the Docker image. “${PWD}/test” is the
+location of the test directory on the local machine.</p>
+</div></blockquote>
+<p>This is a minimal Docker image. If more tools are required this can be used as a
+base image in a Dockerfile using <code class="docutils literal notranslate"><span class="pre">FROM</span> <span class="pre">&lt;Docker</span> <span class="pre">image&gt;</span></code>.  In the future there may
+be images based on Debian, and/or with more tools installed (<code class="docutils literal notranslate"><span class="pre">curl</span></code> and <code class="docutils literal notranslate"><span class="pre">openssl</span></code>,
+for example). If you require a specific configuration please search and +1 an
+issue or <a class="reference external" href="https://github.com/bats-core/bats-core/issues">raise a new issue</a>.</p>
+<p>Further usage examples are in
+<a class="reference external" href="https://github.com/bats-core/bats-core/wiki/Docker-Usage-Examples">the wiki</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bats-core</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#supported-bash-versions">Supported Bash versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#homebrew">Homebrew</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npm">npm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-bats-from-source">Installing Bats from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-bats-from-source-onto-windows-git-bash">Installing Bats from source onto Windows Git Bash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-bats-in-docker">Running Bats in Docker</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docker-usage.html">Docker Usage Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing-tests.html">Writing tests</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to bats-core’s documentation!</a></li>
+      <li>Next: <a href="usage.html" title="next chapter">Usage</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+<h3>Versions</h3>
+<ul>
+  <li><a href="installation.html">master</a></li>
+  <li><a href="https://github.com/bats-core/bats-core/blob/master/docs/versions.md">older versions</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, bats-core origanization.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/installation.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
