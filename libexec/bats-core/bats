@@ -110,6 +110,8 @@ report_formatter=''
 recursive=
 tempdir_cleanup=1
 output=
+interactive=
+
 if [[ -z "${CI:-}" && -t 0 && -t 1 ]] && command -v tput >/dev/null; then
   formatter='pretty'
 fi
@@ -167,6 +169,9 @@ while [[ "$#" -ne 0 ]]; do
     ;;
   -t | --tap)
     formatter='tap'
+    ;;
+  --interactive)
+    interactive=1
     ;;
   -T | --timing)
     flags+=('-T')
@@ -228,9 +233,10 @@ fi
 
 if [[ "$formatter" == pretty ]]; then
   formatter_flags+=('--base-path' "${arguments[0]}")
-  if [[ -z "${CI:-}" && -t 0 && -t 1 ]] && command -v tput >/dev/null; then
-    export BATS_INTERACTIVE_OUTPUT=true
-  fi
+fi
+
+if [[ "$interactive" == 1 ]]; then
+  export BATS_INTERACTIVE_OUTPUT=true
 fi
 
 if [[ "${#arguments[@]}" -eq 0 ]]; then
