@@ -144,7 +144,7 @@ while [[ "$#" -ne 0 ]]; do
     ;;
   --report-formatter)
     shift
-    if [[ $1 =~ ^(pretty|junit|tap|tap13)$ ]]; then
+    if [[ $1 =~ ^(pretty|junit|tap|tap13|cat)$ ]]; then
       report_formatter="$1"
     else
       printf "Unknown report formatter '%s', valid options are %s\n" "$1" "${VALID_FORMATTERS}"
@@ -250,6 +250,9 @@ if [[ -n "$report_formatter" ]]; then
       BATS_REPORT_FILE_NAME="report.xml"
       ;;
     pretty)
+      BATS_REPORT_FILE_NAME="report.log"
+      ;;
+    *)
       BATS_REPORT_FILE_NAME="report.log"
       ;;
   esac
