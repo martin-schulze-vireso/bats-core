@@ -28,6 +28,8 @@ while [[ "$#" -ne 0 ]]; do
   shift
 done
 
+additional_lines=0
+
 update_count_column_width() {
   count_column_width=$((${#count} * 2 + 2))
   if [[ -n "$BATS_ENABLE_TIMING" ]]; then
@@ -52,6 +54,7 @@ trap update_screen_width WINCH
 update_screen_width
 
 begin_suite() {
+  retreat_additional_lines
   go_to_column 0
   update_count_column_width
   buffer_with_truncation $((count_column_left - 1)) "   running setup_file in \`%s'" "$1"
@@ -62,10 +65,11 @@ begin_suite() {
   else
     buffer "%${#count}s/${count}" "$index"
   fi
-  go_to_column 1  
+  go_to_column 1
 }
 
 begin() {
+  retreat_additional_lines
   go_to_column 0
   update_count_column_width
   buffer_with_truncation $((count_column_left - 1)) '   %s' "$name"
@@ -79,17 +83,40 @@ begin() {
   go_to_column 1
 }
 
+source "$BATS_ROOT/lib/bats-core/common.bash"
+
+test_progress() { # <line number> <file> <code>
+  line_number="$1"
+  test_file="$2"
+  if [[ "$additional_lines" -eq 0 ]]; then
+    buffer '\n'
+    (( ++additional_lines ))
+    go_to_column 0
+  else
+    go_to_column 0
+    clear_to_end_of_line
+  fi
+  update_count_column_width
+  code= # declare to appease shellcheck
+  bats_extract_line "$test_file" "$line_number" code
+  bats_strip_string "$code" code
+  buffer_with_truncation $((count_column_left - 1)) '     %s:%d: \x1B[33;22m %s\x1B[0m' "$(remove_prefix "$BASE_PATH" "$test_file")" "$line_number" "$code"
+  clear_to_end_of_line
+}
+
 pass() {
+  retreat_additional_lines
   go_to_column 0
   buffer ' ✓ %s' "$name"
   if [[ -n "$BATS_ENABLE_TIMING" ]]; then
     set_color 2
-    buffer ' [%s]' "$1"
+    buffer ' [%sms]' "$1"
   fi
   advance
 }
 
 skip() {
+  retreat_additional_lines
   local reason="$1"
   if [[ -n "$reason" ]]; then
     reason=": $reason"
@@ -100,6 +127,7 @@ skip() {
 }
 
 fail() {
+  retreat_additional_lines
   go_to_column 0
   set_color 1 bold
   buffer ' ✗ %s' "$name"
@@ -171,6 +199,19 @@ advance() {
   clear_to_end_of_line
   buffer '\n'
   clear_color
+}
+
+retreat_additional_lines() { # delete all additional lines
+  if [[ "$additional_lines" -gt 0 ]]; then
+    for _ in $(seq 1 "$additional_lines"); do
+      go_to_column 0
+      clear_to_end_of_line
+      buffer '\x1B[1A'
+      :
+    done
+    additional_lines=0
+    go_to_column 1
+  fi
 }
 
 set_color() {
@@ -261,6 +302,18 @@ bats_tap_stream_comment() {
 bats_tap_stream_suite() {
   begin_suite "$(remove_prefix "$BASE_PATH" "$1")"
   flush
+}
+
+bats_tap_stream_unknown() {
+  line="$1"
+  #scope="$2"
+  if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET && "$line" == "line "* ]]; then
+    line="${line:5}" # cut off prefix
+    line_number="${line%% *}"
+    file="${line#* }"
+    test_progress "$line_number" "$file"
+    flush
+  fi
 }
 
 bats_parse_internal_extended_tap

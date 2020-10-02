@@ -112,6 +112,15 @@ bats_debug_trap() {
 		# Expansion is required for empty arrays which otherwise error
 		BATS_CURRENT_STACK_TRACE=("${BATS_STACK_TRACE[@]+"${BATS_STACK_TRACE[@]}"}")
 		bats_capture_stack_trace
+
+		#if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
+			source_file="${BASH_SOURCE[1]}"
+			bats_extract_line "$source_file" "${BASH_LINENO[0]}" BATS_LAST_LINE
+			if [[ "${source_file}" == "$BATS_TEST_SOURCE" ]]; then
+				source_file="$BATS_TEST_FILENAME"
+			fi
+			printf "line %d %s\n" "${BASH_LINENO[0]}" "${source_file}" >&3
+		#fi
 	fi
 }
 

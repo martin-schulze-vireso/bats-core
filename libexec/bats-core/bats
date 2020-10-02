@@ -228,6 +228,9 @@ fi
 
 if [[ "$formatter" == pretty ]]; then
   formatter_flags+=('--base-path' "${arguments[0]}")
+  if [[ -z "${CI:-}" && -t 0 && -t 1 ]] && command -v tput >/dev/null; then
+    export BATS_INTERACTIVE_OUTPUT=true
+  fi
 fi
 
 if [[ "${#arguments[@]}" -eq 0 ]]; then
