@@ -96,22 +96,7 @@ bats_frame_filename() {
 	printf -v "$2" '%s' "$__bff_filename"
 }
 
-bats_extract_line() {
-	local __bats_extract_line_line
-	local __bats_extract_line_index=0
-
-	while IFS= read -r __bats_extract_line_line; do
-		if [[ "$((++__bats_extract_line_index))" -eq "$2" ]]; then
-			printf -v "$3" '%s' "${__bats_extract_line_line%$'\r'}"
-			break
-		fi
-	done <"$1"
-}
-
-bats_strip_string() {
-	[[ "$1" =~ ^[[:space:]]*(.*)[[:space:]]*$ ]]
-	printf -v "$2" '%s' "${BASH_REMATCH[1]}"
-}
+source "$BATS_ROOT/lib/bats-core/common.bash"
 
 bats_trim_filename() {
 	printf -v "$2" '%s' "${1#$BATS_CWD/}"
