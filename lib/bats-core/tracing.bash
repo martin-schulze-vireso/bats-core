@@ -66,7 +66,7 @@ bats_print_failed_command() {
 
 	bats_frame_filename "$frame" 'filename'
 	bats_frame_lineno "$frame" 'lineno'
-	bats_extract_line "$filename" "$lineno" 'failed_line'
+	bats_extract_line "$filename" "$lineno" 'failed_line' || true
 	bats_strip_string "$failed_line" 'failed_command'
 	printf '%s' "#   \`${failed_command}' "
 

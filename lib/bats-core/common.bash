@@ -7,9 +7,10 @@ bats_extract_line() { # <file> <line number> <output variable name>
 	while IFS= read -r __bats_extract_line_line; do
 		if [[ "$((++__bats_extract_line_index))" -eq "$2" ]]; then
 			printf -v "$3" '%s' "${__bats_extract_line_line%$'\r'}"
-			break
+			return 0
 		fi
 	done <"$1"
+	return 1
 }
 
 bats_strip_string() {
