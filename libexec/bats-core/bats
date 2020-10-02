@@ -226,6 +226,10 @@ if [[ "$formatter" == tap && -z "$report_formatter" ]]; then
   formatter="cat"
 fi
 
+if [[ "$formatter" == pretty ]]; then
+  formatter_flags+=('--base-path' "${arguments[0]}")
+fi
+
 if [[ "${#arguments[@]}" -eq 0 ]]; then
   abort 'Must specify at least one <test>'
 fi

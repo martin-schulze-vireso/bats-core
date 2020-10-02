@@ -1,8 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
+BASE_PATH="$PWD/"
+
 while [[ "$#" -ne 0 ]]; do
   case "$1" in
+  --base-path)
+    shift
+    # the relative path root to use for reporting filenames
+    # this is mainly intended for suite mode, where this will be the suite root folder
+    BASE_PATH="$1"
+    # use the containing directory when --base-path is a file
+    if [[ ! -d "$BASE_PATH" ]]; then
+      BASE_PATH="$(dirname "$BASE_PATH")"
+    fi
+    # get the absolute path
+    BASE_PATH="$(cd "$BASE_PATH"; pwd)"
+    # ensure the path ends with / to strip that later on
+    if [[ "${BASE_PATH}" != *"/" ]]; then
+      BASE_PATH="$BASE_PATH/"
+    fi
+  ;;
   -T)
     BATS_ENABLE_TIMING="-T"
     ;;
@@ -32,6 +50,20 @@ update_count_column_left() {
 
 trap update_screen_width WINCH
 update_screen_width
+
+begin_suite() {
+  go_to_column 0
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) "   running setup_file in \`%s'" "$1"
+  clear_to_end_of_line
+  go_to_column $count_column_left
+  if [[ -n "$BATS_ENABLE_TIMING" ]]; then
+    buffer "%${#count}s/${count} in %s sec" "$index" "$SECONDS"
+  else
+    buffer "%${#count}s/${count}" "$index"
+  fi
+  go_to_column 1  
+}
 
 begin() {
   go_to_column 0
@@ -227,7 +259,8 @@ bats_tap_stream_comment() {
 }
 
 bats_tap_stream_suite() {
-  : #test_file="$1"
+  begin_suite "$(remove_prefix "$BASE_PATH" "$1")"
+  flush
 }
 
 bats_parse_internal_extended_tap
