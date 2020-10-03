@@ -80,9 +80,12 @@ skip() {
 bats_test_begin() {
   BATS_TEST_DESCRIPTION="$1"
   if [[ -n "$BATS_EXTENDED_SYNTAX" ]]; then
-    printf 'begin %d %s\n' "$BATS_SUITE_TEST_NUMBER" "$BATS_TEST_DESCRIPTION" >&3
+    printf 'bats_tap_stream_setup %d %s\n' "$BATS_SUITE_TEST_NUMBER" "$BATS_TEST_DESCRIPTION" >&3
   fi
   setup
+  if [[ -n "$BATS_EXTENDED_SYNTAX" ]]; then
+  printf 'bats_tap_stream_setup_finished %d %s\n' "$BATS_SUITE_TEST_NUMBER" "$BATS_TEST_DESCRIPTION" >&3
+fi
 }
 
 bats_test_function() {

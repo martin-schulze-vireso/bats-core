@@ -3,6 +3,7 @@ set -e
 
 BASE_PATH="$PWD/"
 
+no_finalize_for_tests=
 while [[ "$#" -ne 0 ]]; do
   case "$1" in
   --base-path)
@@ -23,6 +24,10 @@ while [[ "$#" -ne 0 ]]; do
   ;;
   -T)
     BATS_ENABLE_TIMING="-T"
+    ;;
+  --no-finalize-for-tests)
+    # this is used to reproduce the visible output halfway through a test run, when the finalizers have not yet run
+    no_finalize_for_tests=1
     ;;
   esac
   shift
@@ -57,7 +62,22 @@ begin_suite() {
   retreat_additional_lines
   go_to_column 0
   update_count_column_width
-  buffer_with_truncation $((count_column_left - 1)) "   running setup_file in \`%s'" "$1"
+  buffer_with_truncation $((count_column_left - 1)) "   \x1B[33;22msource\x1B[0ming \`%s'" "$1"
+  clear_to_end_of_line
+  go_to_column $count_column_left
+  if [[ -n "$BATS_ENABLE_TIMING" ]]; then
+    buffer "%${#count}s/${count} in %s sec" "$index" "$SECONDS"
+  else
+    buffer "%${#count}s/${count}" "$index"
+  fi
+  go_to_column 1
+}
+
+begin_setup_file() {
+  retreat_additional_lines
+  go_to_column 0
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) "   running \x1B[33;22msetup_file\x1B[0m in \`%s'" "$1"
   clear_to_end_of_line
   go_to_column $count_column_left
   if [[ -n "$BATS_ENABLE_TIMING" ]]; then
@@ -72,7 +92,52 @@ begin() {
   retreat_additional_lines
   go_to_column 0
   update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) '  \x1B[33;22msource\x1B[0ming `%s'\'' for test `%s'\''' "$(remove_prefix "$BASE_PATH" "$test_file")" "$name"
+  clear_to_end_of_line
+  go_to_column $count_column_left
+  if [[ -n "$BATS_ENABLE_TIMING" ]]; then
+    buffer "%${#count}s/${count} in %s sec" "$index" "$SECONDS"
+  else
+    buffer "%${#count}s/${count}" "$index"
+  fi
+  go_to_column 1
+}
+
+begin_setup() {
+  retreat_additional_lines
+  go_to_column 0
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) '   running \x1B[33;22msetup\x1B[0m for `%s'\''' "$name"
+  clear_to_end_of_line
+  go_to_column $count_column_left
+  if [[ -n "$BATS_ENABLE_TIMING" ]]; then
+    buffer "%${#count}s/${count} in %s sec" "$index" "$SECONDS"
+  else
+    buffer "%${#count}s/${count}" "$index"
+  fi
+  go_to_column 1
+}
+
+begin_test() {
+  retreat_additional_lines
+  go_to_column 0
+  update_count_column_width
   buffer_with_truncation $((count_column_left - 1)) '   %s' "$name"
+  clear_to_end_of_line
+  go_to_column $count_column_left
+  if [[ -n "$BATS_ENABLE_TIMING" ]]; then
+    buffer "%${#count}s/${count} in %s sec" "$index" "$SECONDS"
+  else
+    buffer "%${#count}s/${count}" "$index"
+  fi
+  go_to_column 1  
+}
+
+begin_teardown() {
+  retreat_additional_lines
+  go_to_column 0
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) '   running \x1B[33;22mteardown\x1B[0m for `%s'\''' "$name"
   clear_to_end_of_line
   go_to_column $count_column_left
   if [[ -n "$BATS_ENABLE_TIMING" ]]; then
@@ -88,19 +153,30 @@ source "$BATS_ROOT/lib/bats-core/common.bash"
 test_progress() { # <line number> <file> <code>
   line_number="$1"
   test_file="$2"
-  if [[ "$additional_lines" -eq 0 ]]; then
-    buffer '\n'
-    (( ++additional_lines ))
-    go_to_column 0
-  else
-    go_to_column 0
-    clear_to_end_of_line
-  fi
-  update_count_column_width
+  
   code= # declare to appease shellcheck
-  bats_extract_line "$test_file" "$line_number" code
+  if ! bats_extract_line "$test_file" "$line_number" code; then
+    # don't output lines that are not found in the file
+    # this can happen for preprocessed files that are mapped to their source but contain more lines
+    return
+  fi
+
+  buffer '\n'
+  (( ++additional_lines ))
+  go_to_column 0
+  update_count_column_width
   bats_strip_string "$code" code
-  buffer_with_truncation $((count_column_left - 1)) '     %s:%d: \x1B[33;22m %s\x1B[0m' "$(remove_prefix "$BASE_PATH" "$test_file")" "$line_number" "$code"
+  buffer_with_truncation $((count_column_left - 1)) "     %s:%d: \`\x1B[33;22m%s\x1B[0m\`" "$(remove_prefix "$BASE_PATH" "$test_file")" "$line_number" "${code/$'\x1B'/}"
+  clear_to_end_of_line
+}
+
+test_output() { # <output line>
+  buffer '\n'
+  (( ++additional_lines ))
+  go_to_column 0
+
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) '       > \x1B[34;22m%s\x1B[0m' "${1/$'\x1B'/}"
   clear_to_end_of_line
 }
 
@@ -140,7 +216,7 @@ fail() {
 
 log() {
   set_color 1
-  buffer '   %s\n' "$1"
+  buffer '   %s\n' "${1/$'\x1B'/}"
   clear_color
 }
 
@@ -247,7 +323,7 @@ finish() {
   printf '\n'
 }
 
-trap finish EXIT
+[[ -n "$no_finalize_for_tests" ]] || trap finish EXIT
 
 # shellcheck source=lib/bats-core/formatter.bash
 source "$BATS_ROOT/lib/bats-core/formatter.bash"
@@ -268,6 +344,22 @@ bats_tap_stream_begin() {
   begin
   flush
 }
+
+bats_tap_stream_setup() {
+  name="$2"
+  begin_setup
+  flush
+}
+
+bats_tap_stream_setup_finished() {
+  begin_test
+  flush
+}
+
+bats_tap_stream_teardown() {
+  begin_teardown
+  flush
+}
   
 bats_tap_stream_ok() {
   index="$1"
@@ -277,6 +369,7 @@ bats_tap_stream_ok() {
   else
     pass
   fi
+  flush
 }
 
 bats_tap_stream_skipped() {
@@ -299,23 +392,49 @@ bats_tap_stream_comment() {
   log "$1"
 }
 
-bats_tap_stream_suite() {
+bats_tap_stream_exit_test() {
+  :
+}
+
+bats_tap_stream_begin_file() {
   begin_suite "$(remove_prefix "$BASE_PATH" "$1")"
   flush
 }
 
+bats_tap_stream_setup_file() {
+  begin_setup_file "$(remove_prefix "$BASE_PATH" "$1")"
+  flush
+}
+
+bats_tap_stream_teardown_file() {
+  :
+}
+
+bats_tap_stream_exit_suite() {
+  :
+}
+
 bats_tap_stream_unknown() {
   line="$1"
-  #scope="$2"
-  if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET && "$line" == "line "* ]]; then
-    line="${line:5}" # cut off prefix
-    line_number="${line%% *}"
-    file="${line#* }"
-    test_progress "$line_number" "$file"
-    flush
+  scope="$2"
+  # only report in interactive mode
+  if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
+    # only report within setup/teardown/tests and setup/teardown_file
+    if [[ "$scope" != bats_tap_stream_plan && "$scope" != bats_tap_stream_exit_test && "$scope" != bats_tap_stream_exit_suite ]]; then
+      if [[ "$line" == "line "* ]]; then
+        line="${line:5}" # cut off prefix
+        line_number="${line%% *}"
+        file="${line#* }"
+        test_progress "$line_number" "$file"
+      else
+        # forward stdout during test run or setup_file
+        test_output "$line"
+      fi
+      flush
+    fi
   fi
 }
 
 bats_parse_internal_extended_tap
 
-summary
+[[ -n "$no_finalize_for_tests" ]] || summary

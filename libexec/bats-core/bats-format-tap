@@ -40,7 +40,7 @@ bats_tap_stream_comment() { # <comment text without leading '# '>
     printf "# %s\n" "$1"
 }
 
-bats_tap_stream_suite() { # <file name>
+bats_tap_stream_begin_file() { # <file name>
     :
 }
 

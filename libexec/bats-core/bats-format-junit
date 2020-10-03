@@ -239,7 +239,7 @@ bats_tap_stream_comment() { # <comment text without leading '# '> <scope>
   fi
 }
 
-bats_tap_stream_suite() { # <file name>
+bats_tap_stream_begin_file() { # <file name>
   flush_log
   suite_buffer finish_file
   init_file
