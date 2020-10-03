@@ -35,7 +35,14 @@ run() {
   local origIFS="$IFS"
   # 'output', 'status', 'lines' are global variables available to tests.
   # shellcheck disable=SC2034
-  output="$("$@" 2>&1)"
+  
+  if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
+    "$@" 2>&1 | tee >&3 "$BATS_TMPDIR/run-$$.out"
+    output="$(cat "$BATS_TMPDIR/run-$$.out")"
+    rm "$BATS_TMPDIR/run-$$.out"
+  else
+    output="$("$@" 2>&1)"
+  fi
   # shellcheck disable=SC2034
   status="$?"
   # shellcheck disable=SC2034,SC2206
