@@ -88,6 +88,15 @@ begin_setup_file() {
   go_to_column 1
 }
 
+begin_teardown_file() {
+  retreat_additional_lines
+  go_to_column 0
+  update_count_column_width
+  buffer_with_truncation $((count_column_left - 1)) "   running \x1B[33;22mteardown_file\x1B[0m in \`%s'" "$1"
+  clear_to_end_of_line
+  go_to_column 1
+}
+
 begin() {
   retreat_additional_lines
   go_to_column 0
@@ -407,11 +416,16 @@ bats_tap_stream_setup_file() {
 }
 
 bats_tap_stream_teardown_file() {
-  :
+  begin_teardown_file "$(remove_prefix "$BASE_PATH" "$1")"
+  flush
 }
 
 bats_tap_stream_exit_suite() {
-  :
+  # teardown_file is done -> make sure to delete its line
+  retreat_additional_lines
+  go_to_column 0
+  clear_to_end_of_line
+  flush
 }
 
 bats_tap_stream_unknown() {
