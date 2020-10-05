@@ -118,7 +118,8 @@ bats_debug_trap() {
 			if [[ "${source_file}" == "$BATS_TEST_SOURCE" ]]; then
 				source_file="$BATS_TEST_FILENAME"
 			fi
-			printf "line %d %s\n" "${BASH_LINENO[0]}" "${source_file}" >&3
+			# TODO: suppress this output from exec-file in parallel mode?
+			printf "bats_tap_stream_interactive_output bats_tap_stream_line %d %s\n" "${BASH_LINENO[0]}" "${source_file}"
 		fi
 	fi
 }

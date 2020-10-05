@@ -435,8 +435,8 @@ bats_tap_stream_unknown() {
   if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
     # only report within setup/teardown/tests and setup/teardown_file
     if [[ "$scope" != bats_tap_stream_plan && "$scope" != bats_tap_stream_exit_test && "$scope" != bats_tap_stream_exit_suite ]]; then
-      if [[ "$line" == "line "* ]]; then
-        line="${line:5}" # cut off prefix
+      if [[ "$line" == "bats_tap_stream_line "* ]]; then
+        line="${line#bats_tap_stream_line }" # cut off prefix
         line_number="${line%% *}"
         file="${line#* }"
         test_progress "$line_number" "$file"

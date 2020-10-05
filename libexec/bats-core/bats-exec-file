@@ -50,6 +50,8 @@ BATS_TEST_FILENAME="$filename"
 # shellcheck source=lib/bats-core/preprocessing.bash
 # shellcheck disable=SC2153
 source "$BATS_ROOT/lib/bats-core/preprocessing.bash"
+# shellcheck source=lib/bats-core/common.bash
+source "$BATS_ROOT/lib/bats-core/common.bash"
 
 bats_run_setup_file() {
   # shellcheck source=lib/bats-core/tracing.bash
@@ -91,7 +93,8 @@ bats_run_setup_file() {
     setup_file >>"$BATS_OUT" 2>&1
   else
     # in interactive mode: give a preview of the output while running
-    setup_file 2>&1 | tee -a "$BATS_OUT" >&3
+    # run filter even FD3 through the same pipe to avoid race conditions
+    setup_file 2>&1 3>&1 | bats_filter_interactive_output "$BATS_OUT" >&3
   fi
   
 
@@ -112,7 +115,8 @@ bats_run_teardown_file() {
     teardown_file >>"$BATS_OUT" 2>&1
   else
     # in interactive mode: give a preview of the output while running
-    teardown_file 2>&1 | tee -a "$BATS_OUT" >&3
+    # run filter even FD3 through the same pipe to avoid race conditions
+    teardown_file 2>&1 3>&1 | bats_filter_interactive_output "$BATS_OUT" >&3
   fi
 
   BATS_TEARDOWN_FILE_COMPLETED=1

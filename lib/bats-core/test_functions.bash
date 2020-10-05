@@ -29,6 +29,14 @@ load() {
   source "${file}"
 }
 
+bats_forward_run_output_interactively() {
+  output=""
+  while read -r line; do
+    output+="$line"$'\n'
+    printf "bats_tap_stream_interactive_output %s\n" "$line"
+  done
+}
+
 run() {
   local origFlags="$-"
   set +eET
@@ -37,9 +45,7 @@ run() {
   # shellcheck disable=SC2034
   
   if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
-    "$@" 2>&1 | tee >&3 "$BATS_TMPDIR/run-$$.out"
-    output="$(cat "$BATS_TMPDIR/run-$$.out")"
-    rm "$BATS_TMPDIR/run-$$.out"
+    "$@" 2>&1 | bats_forward_run_output_interactively
   else
     output="$("$@" 2>&1)"
   fi
