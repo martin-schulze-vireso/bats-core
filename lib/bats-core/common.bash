@@ -26,10 +26,9 @@ bats_strip_string() {
 bats_filter_interactive_output() { # <output file>
   while read -r line; do
     # don't forward interactive output into output log
-    if [[ "$line" != "bats_tap_stream_interactive_output "* ]]; then
+    if [[ "$line" != "bats_tap_stream_"* ]]; then
       echo "$line" >> "$1"
     fi
-    # if interactive output, remove prefix
-    echo "${line#bats_tap_stream_interactive_output }"
+    echo "$line"
   done
 }

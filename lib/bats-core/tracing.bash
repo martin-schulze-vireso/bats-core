@@ -121,7 +121,7 @@ bats_debug_trap() {
 				source_file="$BATS_TEST_FILENAME"
 			fi
 			# TODO: suppress this output from exec-file in parallel mode?
-			printf "bats_tap_stream_interactive_output bats_tap_stream_line %d %s\n" "${BASH_LINENO[0]}" "${source_file}"
+			printf "bats_tap_stream_line %d %s\n" "${BASH_LINENO[0]}" "${source_file}"
 		fi
 	fi
 }
