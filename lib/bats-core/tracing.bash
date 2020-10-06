@@ -110,8 +110,10 @@ bats_debug_trap() {
 		# Therefore we capture the stacktrace but use it only after the next debug
 		# trap fired.
 		# Expansion is required for empty arrays which otherwise error
-		BATS_CURRENT_STACK_TRACE=("${BATS_STACK_TRACE[@]+"${BATS_STACK_TRACE[@]}"}")
-		bats_capture_stack_trace
+		if [[ "${BATS_NO_CAPTURE_STACK_TRACES_IN_DEBUG_TRAP-NOTSET}" == NOTSET ]]; then
+			BATS_CURRENT_STACK_TRACE=("${BATS_STACK_TRACE[@]+"${BATS_STACK_TRACE[@]}"}")
+			bats_capture_stack_trace
+		fi
 
 		if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" != NOTSET ]]; then
 			source_file="${BASH_SOURCE[1]}"
@@ -143,6 +145,12 @@ bats_error_trap() {
 			BATS_ERROR_STATUS=1
 		fi
 		BATS_STACK_TRACE=("${BATS_CURRENT_STACK_TRACE[@]}")
-		trap - DEBUG
+		if [[ "${BATS_INTERACTIVE_OUTPUT-NOTSET}" == NOTSET ]]; then
+			# we have no use for the debug trap anymore
+			trap - DEBUG
+		else
+			# we still want interactive line information
+			BATS_NO_CAPTURE_STACK_TRACES_IN_DEBUG_TRAP=1
+		fi
 	fi
 }
