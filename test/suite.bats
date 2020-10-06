@@ -56,15 +56,19 @@ fixtures suite
   FLUNK=1 run bats-exec-suite -x "$FIXTURE_ROOT/multiple/"*.bats
   echo "output: $output"
   [ $status -eq 1 ]
+
   [ "${lines[0]}" = "1..3" ]
-  [ "${lines[1]}" = "suite $FIXTURE_ROOT/multiple/a.bats" ]
-  [ "${lines[2]}" = "begin 1 truth" ]
-  [ "${lines[3]}" = "ok 1 truth" ]
-  [ "${lines[4]}" = "suite $FIXTURE_ROOT/multiple/b.bats" ]
-  [ "${lines[5]}" = "begin 2 more truth" ]
-  [ "${lines[6]}" = "ok 2 more truth" ]
-  [ "${lines[7]}" = "begin 3 quasi-truth" ]
-  [ "${lines[8]}" = "not ok 3 quasi-truth" ]
+  [ "${lines[1]}" = "bats_tap_stream_begin_file $FIXTURE_ROOT/multiple/a.bats" ]
+  [ "${lines[2]}" = "bats_tap_stream_setup_file $FIXTURE_ROOT/multiple/a.bats" ]
+  [ "${lines[7]}" = "ok 1 truth" ]
+  [ "${lines[9]}" = "bats_tap_stream_teardown_file $FIXTURE_ROOT/multiple/a.bats" ]
+  [ "${lines[10]}" = "bats_tap_stream_exit_suite $FIXTURE_ROOT/multiple/a.bats" ]
+  [ "${lines[11]}" = "bats_tap_stream_begin_file $FIXTURE_ROOT/multiple/b.bats" ]
+  [ "${lines[12]}" = "bats_tap_stream_setup_file $FIXTURE_ROOT/multiple/b.bats" ]
+  [ "${lines[17]}" = "ok 2 more truth" ]
+  [ "${lines[23]}" = "not ok 3 quasi-truth" ]
+  [ "${lines[27]}" = "bats_tap_stream_teardown_file $FIXTURE_ROOT/multiple/b.bats" ]
+  [ "${lines[28]}" = "bats_tap_stream_exit_suite $FIXTURE_ROOT/multiple/b.bats" ]
 }
 
 @test "timing syntax in suite" {
@@ -87,17 +91,12 @@ fixtures suite
   echo "$output"
   [ $status -eq 1 ]
   [ "${lines[0]}" = "1..3" ]
-  [ "${lines[1]}" = "suite $FIXTURE_ROOT/multiple/a.bats" ]
-  [ "${lines[2]}" = "begin 1 truth" ]
   regex="ok 1 truth in [0-9]+ms"
-  [[ "${lines[3]}" =~ $regex ]]
-  [ "${lines[4]}" = "suite $FIXTURE_ROOT/multiple/b.bats" ]
-  [ "${lines[5]}" = "begin 2 more truth" ]
+  [[ "${lines[7]}" =~ $regex ]]
   regex="ok 2 more truth in [0-9]+ms"
-  [[ "${lines[6]}" =~ $regex ]]
-  [ "${lines[7]}" = "begin 3 quasi-truth" ]
+  [[ "${lines[17]}" =~ $regex ]]
   regex="not ok 3 quasi-truth in [0-9]+ms"
-  [[ "${lines[8]}" =~ $regex ]]
+  [[ "${lines[23]}" =~ $regex ]]
 }
 
 @test "recursive support (short option)" {

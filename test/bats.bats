@@ -56,13 +56,13 @@ teardown() {
 @test "summary passing tests" {
   run filter_control_sequences bats -p "$FIXTURE_ROOT/passing.bats"
   [ $status -eq 0 ]
-  [ "${lines[1]}" = "1 test, 0 failures" ]
+  [ "${lines[-1]}" = "1 test, 0 failures" ]
 }
 
 @test "summary passing and skipping tests" {
   run filter_control_sequences bats -p "$FIXTURE_ROOT/passing_and_skipping.bats"
   [ $status -eq 0 ]
-  [ "${lines[3]}" = "3 tests, 0 failures, 2 skipped" ]
+  [ "${lines[-1]}" = "3 tests, 0 failures, 2 skipped" ]
 }
 
 @test "tap passing and skipping tests" {
@@ -77,13 +77,13 @@ teardown() {
 @test "summary passing and failing tests" {
   run filter_control_sequences bats -p "$FIXTURE_ROOT/failing_and_passing.bats"
   [ $status -eq 0 ]
-  [ "${lines[4]}" = "2 tests, 1 failure" ]
+  [ "${lines[-1]}" = "2 tests, 1 failure" ]
 }
 
 @test "summary passing, failing and skipping tests" {
   run filter_control_sequences bats -p "$FIXTURE_ROOT/passing_failing_and_skipping.bats"
   [ $status -eq 0 ]
-  [ "${lines[5]}" = "3 tests, 1 failure, 1 skipped" ]
+  [ "${lines[-1]}" = "3 tests, 1 failure, 1 skipped" ]
 }
 
 @test "tap passing, failing and skipping tests" {
@@ -327,11 +327,23 @@ teardown() {
   run bats-exec-suite -x "$FIXTURE_ROOT/failing_and_passing.bats"
   echo "$output"
   [ $status -eq 1 ]
-  [ "${lines[1]}" = "suite $FIXTURE_ROOT/failing_and_passing.bats" ]
-  [ "${lines[2]}" = 'begin 1 a failing test' ]
-  [ "${lines[3]}" = 'not ok 1 a failing test' ]
-  [ "${lines[6]}" = 'begin 2 a passing test' ]
-  [ "${lines[7]}" = 'ok 2 a passing test' ]
+
+  [ "${lines[1]}" = "bats_tap_stream_begin_file $FIXTURE_ROOT/failing_and_passing.bats" ]
+  [ "${lines[2]}" = "bats_tap_stream_setup_file $FIXTURE_ROOT/failing_and_passing.bats" ]
+  [ "${lines[3]}" = "bats_tap_stream_begin 1 test_a_failing_test" ]
+  [ "${lines[4]}" = "bats_tap_stream_setup 1 a failing test" ]
+  [ "${lines[5]}" = "bats_tap_stream_setup_finished 1 a failing test" ]
+  [ "${lines[6]}" = "bats_tap_stream_teardown 1" ]
+  [ "${lines[7]}" = 'not ok 1 a failing test' ]
+  [ "${lines[10]}" = 'bats_tap_stream_exit_test 1' ]
+  [ "${lines[11]}" = 'bats_tap_stream_begin 2 test_a_passing_test' ]
+  [ "${lines[12]}" = 'bats_tap_stream_setup 2 a passing test' ]
+  [ "${lines[13]}" = 'bats_tap_stream_setup_finished 2 a passing test' ]
+  [ "${lines[14]}" = 'bats_tap_stream_teardown 2' ]
+  [ "${lines[15]}" = 'ok 2 a passing test' ]
+  [ "${lines[16]}" = 'bats_tap_stream_exit_test 2' ]
+  [ "${lines[17]}" = "bats_tap_stream_teardown_file $FIXTURE_ROOT/failing_and_passing.bats" ]
+  [ "${lines[18]}" = "bats_tap_stream_exit_suite $FIXTURE_ROOT/failing_and_passing.bats" ]
 }
 
 @test "timing syntax" {
@@ -350,11 +362,9 @@ teardown() {
   echo "$output"
   [ $status -eq 1 ]
   regex="not ok 1 a failing test in [0-9]+ms"
-  [ "${lines[2]}" = 'begin 1 a failing test' ]
-  [[ "${lines[3]}" =~ $regex ]]
-  [ "${lines[6]}" = 'begin 2 a passing test' ]
-  regex="ok 2 a passing test in [0-9]+ms"
   [[ "${lines[7]}" =~ $regex ]]
+  regex="ok 2 a passing test in [0-9]+ms"
+  [[ "${lines[15]}" =~ $regex ]]
 }
 
 @test "pretty and tap formats" {
