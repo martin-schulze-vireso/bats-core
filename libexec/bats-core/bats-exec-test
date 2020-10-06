@@ -181,8 +181,6 @@ bats_perform_test() {
 # shellcheck source=lib/bats-core/preprocessing.bash
 source "$BATS_ROOT/lib/bats-core/preprocessing.bash"
 
-exec 3<&1
-
 export BATS_TEST_NAME="$1"
 export BATS_SUITE_TEST_NUMBER="$2"
 export BATS_TEST_NUMBER="$3"
