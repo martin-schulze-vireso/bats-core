@@ -96,6 +96,7 @@ bats_frame_filename() {
 	printf -v "$2" '%s' "$__bff_filename"
 }
 
+# shellcheck source=lib/bats-core/common.bash
 source "$BATS_ROOT/lib/bats-core/common.bash"
 
 bats_trim_filename() {

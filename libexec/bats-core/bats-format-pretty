@@ -157,6 +157,7 @@ begin_teardown() {
   go_to_column 1
 }
 
+# shellcheck source=lib/bats-core/common.bash
 source "$BATS_ROOT/lib/bats-core/common.bash"
 
 test_progress() { # <line number> <file> <code>
