@@ -1,27 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-while [[ "$#" -ne 0 ]]; do
-  case "$1" in
-  -T)
-    BATS_ENABLE_TIMING="-T"
-    ;;
-  esac
-  shift
-done
-
-header_pattern='[0-9]+\.\.[0-9]+'
-IFS= read -r header
-
-if [[ "$header" =~ $header_pattern ]]; then
-  printf "TAP version 13\n"
-  printf "%s\n" "$header"
-else
-  # If the first line isn't a TAP plan, print it and pass the rest through
-  printf '%s\n' "$header"
-  exec cat
-fi
-
 yaml_block_open=''
 add_yaml_entry() {
   if [[ -z "$yaml_block_open" ]]; then
@@ -38,50 +17,95 @@ close_previous_yaml_block() {
   fi
 }
 
-while IFS= read -r line; do
-  case "$line" in
-  'begin '*) ;;
-  'ok '*)
-    close_previous_yaml_block
-    number_of_printed_log_lines_for_this_test_so_far=0
-    if [[ -n "$BATS_ENABLE_TIMING" ]]; then
-      timing_expr="(ok [0-9]+ .+) in ([0-9]+)ms$"
-      if [[ "$line" =~ $timing_expr ]]; then
-        printf "%s\n" "${BASH_REMATCH[1]}"
-        add_yaml_entry "duration_ms" "${BASH_REMATCH[2]}"
-      else
-        echo "Could not match output line to timing regex: $line" >&2
-        exit 1
-      fi
-    else
-      printf "%s\n" "${line}"
-    fi
-    ;;
-  'not ok '*)
-    close_previous_yaml_block
-    number_of_printed_log_lines_for_this_test_so_far=0
-    timing_expr="not ok [0-9]+ (.)+ in ([0-9])+ms$"
-    if [[ -n "$BATS_ENABLE_TIMING" ]]; then
-      if [[ "$line" =~ $timing_expr ]]; then
-        printf "%s\n" "${BATS_REMATCH[1]}"
-        add_yaml_entry "duration_ms" "${BASH_REMATCH[2]}"
-      else
-        echo "Could not match failure line to timing regex: $line" >&2
-        exit 1
-      fi
-    else
-      printf "%s\n" "${line}"
-    fi
-    ;;
-  '# '*)
-    if [[ $number_of_printed_log_lines_for_this_test_so_far -eq 0 ]]; then
-      add_yaml_entry "message" "|" # use a multiline string for this entry
-    fi
-    ((++number_of_printed_log_lines_for_this_test_so_far))
-    printf "    %s\n" "$(echo "\"${line}\"" | cut -b 3-)"
-    ;;
-  'suite '*) ;;
-  esac
-done
+bats_tap_stream_plan() { # <number of tests>
+  printf "TAP version 13\n"
+  printf "1..%d\n" "$1"
+}
+
+bats_tap_stream_begin() { # <test index> <test function name>                
+  :
+}
+
+bats_tap_stream_setup() { # <test index> <test name>
+  :
+}
+
+bats_tap_stream_setup_finished() { # <test index> <test name>
+  :
+}
+
+bats_tap_stream_teardown() { # <test index> <test name>
+  :
+}
+
+bats_tap_stream_exit_test() { # <test index> <test name>
+  :
+}
+
+bats_tap_stream_ok() { # [--duration <milliseconds] <test index> <test name>
+  close_previous_yaml_block
+  number_of_printed_log_lines_for_this_test_so_far=0
+  if [[ "$1" == "--duration" ]]; then
+    printf "ok %d %s" "$3" "$3"
+    add_yaml_entry "duration_ms" "$2"
+  else
+    printf "ok %d %s\n" "$1" "$2"
+  fi
+}
+
+bats_tap_stream_not_ok() { # [--duration <milliseconds>] <test index> <test name>
+  close_previous_yaml_block
+  number_of_printed_log_lines_for_this_test_so_far=0
+  if [[ "$1" == "--duration" ]]; then
+      printf "not ok %d %s" "$3" "$4"
+      add_yaml_entry "duration_ms" "$2"
+  else
+    printf "not ok %d %s\n" "$1" "$2"
+  fi
+}
+
+bats_tap_stream_skipped() { # <test index> <test name> <skip reason>
+  if [[ -n "$3" ]]; then
+    printf "ok %d %s # skip %s\n" "$1" "$2" "$3"
+  else
+    printf "ok %d %s # skip\n" "$1" "$2"
+  fi
+}
+
+bats_tap_stream_comment() { # <comment text without leading '# '> <scope>
+  if [[ $number_of_printed_log_lines_for_this_test_so_far -eq 0 ]]; then
+    add_yaml_entry "message" "|" # use a multiline string for this entry
+  fi
+  ((++number_of_printed_log_lines_for_this_test_so_far))
+  printf "    %s\n" "$1"
+}
+                                                                            
+bats_tap_stream_begin_file() { # <file name>
+  :
+}
+
+bats_tap_stream_setup_file() { # <file name>
+  :
+}
+
+bats_tap_stream_teardown_file() { # <file name>
+  :
+}
+
+bats_tap_stream_exit_suite() { # <file name>
+  :
+}
+
+bats_tap_stream_unknown() { # <full line> <scope>
+  :
+}
+
+# shellcheck source=lib/bats-core/formatter.bash
+source "$BATS_ROOT/lib/bats-core/formatter.bash"
+
 # close the final block if there was one
-close_previous_yaml_block
+trap close_previous_yaml_block exit
+
+bats_parse_internal_extended_tap
+
+

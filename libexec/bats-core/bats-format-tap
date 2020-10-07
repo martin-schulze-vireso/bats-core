@@ -20,6 +20,22 @@ bats_tap_stream_ok() { # [--duration <milliseconds] <test index> <test name>
     fi
 }
 
+bats_tap_stream_setup() {
+    :
+}
+
+bats_tap_stream_setup_finished() {
+    :
+}
+
+bats_tap_stream_teardown() {
+    :
+}
+
+bats_tap_stream_exit_test() {
+    :
+}
+
 bats_tap_stream_not_ok() { # [--duration <milliseconds>] <test index> <test name>
     if [[ "$1" == "--duration" ]]; then
         printf "not ok %d %s # in %d ms\n" "$3" "$4" "$2"
@@ -41,6 +57,18 @@ bats_tap_stream_comment() { # <comment text without leading '# '>
 }
 
 bats_tap_stream_begin_file() { # <file name>
+    :
+}
+
+bats_tap_stream_setup_file() {
+    :
+}
+
+bats_tap_stream_teardown_file() {
+    :
+}
+
+bats_tap_stream_exit_suite() {
     :
 }
 
