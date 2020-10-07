@@ -690,3 +690,44 @@ END_OF_ERR_MSG
     #   ^ kill the process for good when SIGINT failed,
     #     to avoid waiting endlessly for stuck children to finish
 }
+
+# TODO: also test --interactive mode
+@test "All formatters (except cat) implement the callback interface" {
+  cd "$BATS_ROOT/libexec/bats-core/"
+  for formatter in bats-format-*; do
+    # the cat formatter is not expected to implement this interface
+    if [[ "$formatter" == *"bats-format-cat" ]]; then
+      continue
+    fi
+    tested_at_least_one_formatter=1
+    echo "Formatter: ${formatter}"
+    # the replay should be possible without errors
+    "$formatter" >/dev/null <<EOF
+1..1
+bats_tap_stream_begin_file "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 7 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_setup_file "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_begin 1 test_a_failing_test
+bats_tap_stream_line 7 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 1 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 1 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_setup 1 a failing test
+bats_tap_stream_setup_finished 1 a failing test
+bats_tap_stream_line 2 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 3 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 4 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 4 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 4 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_line 1 "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_teardown 1
+not ok 1 a failing test
+# (in test file test/fixtures/bats/failing.bats, line 4)
+#   \`eval "( exit ${STATUS:-1} )"' failed
+bats_tap_stream_exit_test 1
+bats_tap_stream_teardown_file "$BATS_FIXTURE_ROOT/failing.bats"
+bats_tap_stream_exit_suite "$BATS_FIXTURE_ROOT/failing.bats"
+EOF
+  done
+
+  [[ -n "$tested_at_least_one_formatter" ]]
+}
