@@ -298,7 +298,7 @@ source "$BATS_ROOT/lib/bats-core/validator.bash"
 set -o pipefail execfail
 
 if [[ -n "$report_formatter" ]]; then
-  exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | tee >("bats-format-${report_formatter}" "${report_formatter_flags[@]}" >"${BATS_REPORT_OUTPUT_PATH}/${BATS_REPORT_FILE_NAME}") | bats_test_count_validator | "bats-format-${formatter}" "${formatter_flags[@]}"
+  exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | tee >("bats-format-${report_formatter}" "${report_formatter_flags[@]}" >"${BATS_REPORT_OUTPUT_PATH}/${BATS_REPORT_FILE_NAME}") >(bats_test_count_validator) | "bats-format-${formatter}" "${formatter_flags[@]}"
 else
-  exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | bats_test_count_validator | "bats-format-${formatter}" "${formatter_flags[@]}"
+  exec bats-exec-suite "${flags[@]}" "${filenames[@]}" | tee >(bats_test_count_validator) /tmp/out.log | "bats-format-${formatter}" "${formatter_flags[@]}"
 fi

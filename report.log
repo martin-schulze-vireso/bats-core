@@ -1,0 +1,5 @@
+1..1
+bats_tap_stream_begin_file /home/martin_schulze/git/bats-core/test.bats
+bats_tap_stream_setup_file /home/martin_schulze/git/bats-core/test.bats
+bats_tap_stream_begin 1 test_test
+bats_tap_stream_setup 1 test

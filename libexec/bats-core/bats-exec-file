@@ -94,7 +94,8 @@ bats_run_setup_file() {
   else
     # in interactive mode: give a preview of the output while running
     # run filter even FD3 through the same pipe to avoid race conditions
-    setup_file 2>&1 3>&1 > >(bats_filter_interactive_output "$BATS_OUT" >&3)
+    setup_file 2>&1 > >(tee >(bats_filter_out_interactive_output >> "$BATS_OUT") >&3) 2>&1  3>&1
+    
   fi
   
 
@@ -116,7 +117,7 @@ bats_run_teardown_file() {
   else
     # in interactive mode: give a preview of the output while running
     # run filter even FD3 through the same pipe to avoid race conditions
-    teardown_file 2>&1 3>&1 > >(bats_filter_interactive_output "$BATS_OUT" >&3)
+    teardown_file 2>&1 > >(tee >(bats_filter_out_interactive_output >> "$BATS_OUT") >&3) 2>&1  3>&1
   fi
 
   BATS_TEARDOWN_FILE_COMPLETED=1

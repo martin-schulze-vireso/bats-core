@@ -36,93 +36,117 @@ function bats_parse_internal_extended_tap() {
     not_ok_line_regexpr="not ok ([0-9]+) (.*)"
 
     timing_expr="in ([0-9]+)ms$"
-    local test_name begin_index ok_index not_ok_index index scope old_scope
+    local test_name begin_index ok_index not_ok_index index scope old_scope 
     begin_index=0
     index=0
     scope=bats_tap_stream_plan
-    while IFS= read -r line; do
-        old_scope="$scope"
-        scope=${line%% *}
-        case "$line" in
-        'bats_tap_stream_begin '*) # this will only be called in extended tap output
-            ((++begin_index))
-            test_name="${line#* $begin_index }" # this can only be the function name
-            bats_tap_stream_begin "$begin_index" "$test_name"
-            ;;
-        'bats_tap_stream_setup '*) # this will only be called in extended tap output
-            test_name="${line#* $begin_index }" # now override function name from begin with actual name
-            bats_tap_stream_setup "$begin_index" "$test_name"
-            ;;
-        'bats_tap_stream_setup_finished '*) # this will only be called in extended tap output
-            bats_tap_stream_setup_finished  "$begin_index" "$test_name"
-            ;;
-        'ok '*)
-            ((++index))
-            scope=bats_tap_stream_ok
-            if [[ "$line" =~ $ok_line_regexpr ]]; then
-                ok_index="${BASH_REMATCH[1]}"
-                test_name="${BASH_REMATCH[2]}"
-                if [[ "$line" =~ $skip_line_regexpr ]]; then
-                    test_name="${BASH_REMATCH[2]}" # cut off name before "# skip"
-                    local skip_reason="${BASH_REMATCH[4]}"
-                    scope=bats_tap_stream_skipped
-                    bats_tap_stream_skipped "$ok_index" "$test_name" "$skip_reason"
-                else
-                    if [[ "$line" =~ $timing_expr ]]; then
-                        bats_tap_stream_ok --duration "${BASH_REMATCH[1]}" "$ok_index" "$test_name"
+    line=''
+    while true; do # allow for timeout on early lines
+        while IFS= read -t 2 -r line; status=$?; [[ $status -eq 0 ]]; do
+            old_scope="$scope"
+            scope=${line%% *}
+            case "$line" in
+            'bats_tap_stream_begin '*) # this will only be called in extended tap output
+                ((++begin_index))
+                test_name="${line#* $begin_index }" # this can only be the function name
+                bats_tap_stream_begin "$begin_index" "$test_name"
+                ;;
+            'bats_tap_stream_setup '*) # this will only be called in extended tap output
+                test_name="${line#* $begin_index }" # now override function name from begin with actual name
+                bats_tap_stream_setup "$begin_index" "$test_name"
+                ;;
+            'bats_tap_stream_setup_finished '*) # this will only be called in extended tap output
+                bats_tap_stream_setup_finished  "$begin_index" "$test_name"
+                ;;
+            'ok '*)
+                ((++index))
+                scope=bats_tap_stream_ok
+                if [[ "$line" =~ $ok_line_regexpr ]]; then
+                    ok_index="${BASH_REMATCH[1]}"
+                    test_name="${BASH_REMATCH[2]}"
+                    if [[ "$line" =~ $skip_line_regexpr ]]; then
+                        test_name="${BASH_REMATCH[2]}" # cut off name before "# skip"
+                        local skip_reason="${BASH_REMATCH[4]}"
+                        scope=bats_tap_stream_skipped
+                        bats_tap_stream_skipped "$ok_index" "$test_name" "$skip_reason"
                     else
-                        bats_tap_stream_ok "$ok_index" "$test_name"
+                        if [[ "$line" =~ $timing_expr ]]; then
+                            bats_tap_stream_ok --duration "${BASH_REMATCH[1]}" "$ok_index" "$test_name"
+                        else
+                            bats_tap_stream_ok "$ok_index" "$test_name"
+                        fi
                     fi
-                fi
-            else
-                printf "ERROR: could not match ok line: %s" "$line" >&2
-                exit 1
-            fi
-            ;;
-        'not ok '*)
-            ((++index))
-            scope=bats_tap_stream_not_ok
-            if [[ "$line" =~ $not_ok_line_regexpr ]]; then
-                not_ok_index="${BASH_REMATCH[1]}"
-                test_name="${BASH_REMATCH[2]}"
-                if [[ "$line" =~ $timing_expr ]]; then
-                    bats_tap_stream_not_ok --duration "${BASH_REMATCH[1]}" "$not_ok_index" "$test_name"
                 else
-                    bats_tap_stream_not_ok "$not_ok_index" "$test_name"
+                    printf "ERROR: could not match ok line: %s" "$line" >&2
+                    exit 1
                 fi
-            else
-                printf "ERROR: could not match not ok line: %s" "$line" >&2
-                exit 1
+                ;;
+            'not ok '*)
+                ((++index))
+                scope=bats_tap_stream_not_ok
+                if [[ "$line" =~ $not_ok_line_regexpr ]]; then
+                    not_ok_index="${BASH_REMATCH[1]}"
+                    test_name="${BASH_REMATCH[2]}"
+                    if [[ "$line" =~ $timing_expr ]]; then
+                        bats_tap_stream_not_ok --duration "${BASH_REMATCH[1]}" "$not_ok_index" "$test_name"
+                    else
+                        bats_tap_stream_not_ok "$not_ok_index" "$test_name"
+                    fi
+                else
+                    printf "ERROR: could not match not ok line: %s" "$line" >&2
+                    exit 1
+                fi
+                ;;
+            '# '*)
+                scope="$old_scope" # comments don't change the scope
+                bats_tap_stream_comment "${line:2}" "$scope"
+                ;;
+            'bats_tap_stream_teardown '*) # this will only be called in extended tap output
+                bats_tap_stream_teardown "$begin_index" "$test_name"
+                ;;
+            'bats_tap_stream_exit_test '*) # this will only be called in extended tap output
+                bats_tap_stream_exit_test  "$begin_index" "$test_name"
+                ;;
+            'bats_tap_stream_begin_file '*) # this will only be called in extended tap output
+                # pass on the
+                bats_tap_stream_begin_file "${line#bats_tap_stream_begin_file }"
+                ;;
+            'bats_tap_stream_exit_suite '*) # this will only be called in extended tap output
+                bats_tap_stream_exit_suite "${line#bats_tap_stream_exit_suite }"
+                ;;
+            'bats_tap_stream_setup_file '*) # this will only be called in extended tap output
+                bats_tap_stream_setup_file "${line#bats_tap_stream_setup_file }"
+                ;;
+            'bats_tap_stream_teardown_file '*) # this will only be called in extended tap output
+                bats_tap_stream_teardown_file "${line#bats_tap_stream_teardown_file }"
+                ;;
+            *)
+                scope="$old_scope" # unknown commands don't change the scope
+                bats_tap_stream_unknown "$line" "$scope"
+            ;;
+            esac
+        done
+        if [[ $status -gt 128 ]]; then
+            # left due to timeout -> try to slurp up remaining output
+            line=''
+            echo "Pulling low"
+            while IFS= read -t 2 -r -n 1 char; do
+                echo "char: $char"
+                if [[ "$char" != $'\n' ]]; then
+                    line+="$char"
+                else
+                    # if we suddenly encounter end of line, only consume this one
+                    break
+                fi
+            done
+            if [[ -n "$line" ]]; then
+                bats_tap_stream_unknown "$line" "$scope"
             fi
-            ;;
-        '# '*)
-            scope="$old_scope" # comments don't change the scope
-            bats_tap_stream_comment "${line:2}" "$scope"
-            ;;
-        'bats_tap_stream_teardown '*) # this will only be called in extended tap output
-            bats_tap_stream_teardown "$begin_index" "$test_name"
-            ;;
-        'bats_tap_stream_exit_test '*) # this will only be called in extended tap output
-            bats_tap_stream_exit_test  "$begin_index" "$test_name"
-            ;;
-        'bats_tap_stream_begin_file '*) # this will only be called in extended tap output
-            # pass on the
-            bats_tap_stream_begin_file "${line#bats_tap_stream_begin_file }"
-            ;;
-        'bats_tap_stream_exit_suite '*) # this will only be called in extended tap output
-            bats_tap_stream_exit_suite "${line#bats_tap_stream_exit_suite }"
-            ;;
-        'bats_tap_stream_setup_file '*) # this will only be called in extended tap output
-            bats_tap_stream_setup_file "${line#bats_tap_stream_setup_file }"
-            ;;
-        'bats_tap_stream_teardown_file '*) # this will only be called in extended tap output
-            bats_tap_stream_teardown_file "${line#bats_tap_stream_teardown_file }"
-            ;;
-        *)
-            scope="$old_scope" # unknown commands don't change the scope
-            bats_tap_stream_unknown "$line" "$scope"
-        ;;
-        esac
+        else
+            # we did leave the read loop because of another reason than timeout
+            # -> finish
+            break
+        fi
     done
 }
 

@@ -1,18 +1,18 @@
-[1G   [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats'[K[133G0/2[2G
+[1G   [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats'[K[273G0/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:3: `[33;22mecho "outside any functions: stdout"[0m`[K
-[1G       > [34;22moutside any functions: stdout[0m[K[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup_file[0m in `test/fixtures/pretty-formatter/test.bats'[K[133G0/2[2G
-[1G     test/fixtures/pretty-formatter/test.bats:5: `[33;22msetup_file() {[0m`[K
+[1G       > [34;22moutside any functions: stdout[0m[K[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup_file[0m in `test/fixtures/pretty-formatter/test.bats'[K[273G0/2[2G
 [1G       > [34;22msetup_file: FD3[0m[K
+[1G     test/fixtures/pretty-formatter/test.bats:5: `[33;22msetup_file() {[0m`[K
 [1G     test/fixtures/pretty-formatter/test.bats:6: `[33;22mecho "setup_file: FD3" >&3[0m`[K
 [1G     test/fixtures/pretty-formatter/test.bats:7: `[33;22mecho "setup_file: stdout"[0m`[K
-[1G       > [34;22msetup_file: stdout[0m[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G  [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats' for test `test_successful_test'[K[133G1/2[2G
+[1G       > [34;22msetup_file: stdout[0m[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G  [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats' for test `test_successful_test'[K[273G1/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:3: `[33;22mecho "outside any functions: stdout"[0m`[K
 [1G       > [34;22moutside any functions: stdout[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:25: `[33;22m@test "successful test" {[0m`[K
-[1G     test/fixtures/pretty-formatter/test.bats:25: `[33;22m@test "successful test" {[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup[0m for `successful test'[K[133G1/2[2G
+[1G     test/fixtures/pretty-formatter/test.bats:25: `[33;22m@test "successful test" {[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup[0m for `successful test'[K[273G1/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:15: `[33;22msetup() {[0m`[K
 [1G       > [34;22msuccessful test setup: FD3[0m[K
-[1G     test/fixtures/pretty-formatter/test.bats:16: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: FD3" >&3[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   successful test[K[133G1/2[2G
+[1G     test/fixtures/pretty-formatter/test.bats:16: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: FD3" >&3[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   successful test[K[273G1/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:17: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: stdout"[0m`[K
 [1G       > [34;22msuccessful test: FD3[0m[K
 [1G       > [34;22msuccessful test setup: stdout[0m[K
@@ -20,20 +20,20 @@
 [1G     test/fixtures/pretty-formatter/test.bats:27: `[33;22mecho "$BATS_TEST_DESCRIPTION: stdout"[0m`[K
 [1G       > [34;22msuccessful test: stdout[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:28: `[33;22mrun echo "$BATS_TEST_DESCRIPTION: run"[0m`[K
-[1G       > [34;22mbats_tap_stream_interactive_output successful test: run[0m[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22mteardown[0m for `successful test'[K[133G1/2[2G
+[1G       > [34;22mbats_tap_stream_interactive_output successful test: run[0m[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22mteardown[0m for `successful test'[K[273G1/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:20: `[33;22mteardown() {[0m`[K
 [1G       > [34;22msuccessful test teardown: FD3[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:21: `[33;22mecho "$BATS_TEST_DESCRIPTION teardown: FD3" >&3[0m`[K
 [1G     test/fixtures/pretty-formatter/test.bats:22: `[33;22mecho "$BATS_TEST_DESCRIPTION teardown: stdout"[0m`[K
 [1G       > [34;22msuccessful test teardown: stdout[0m[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G ✓ successful test[K
-[0m[1G  [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats' for test `test_failing_test'[K[133G2/2[2G
+[0m[1G  [33;22msource[0ming `test/fixtures/pretty-formatter/test.bats' for test `test_failing_test'[K[273G2/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:3: `[33;22mecho "outside any functions: stdout"[0m`[K
 [1G       > [34;22moutside any functions: stdout[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:31: `[33;22m@test "failing test" {[0m`[K
-[1G     test/fixtures/pretty-formatter/test.bats:31: `[33;22m@test "failing test" {[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup[0m for `failing test'[K[133G2/2[2G
+[1G     test/fixtures/pretty-formatter/test.bats:31: `[33;22m@test "failing test" {[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22msetup[0m for `failing test'[K[273G2/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:15: `[33;22msetup() {[0m`[K
 [1G       > [34;22mfailing test setup: FD3[0m[K
-[1G     test/fixtures/pretty-formatter/test.bats:16: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: FD3" >&3[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   failing test[K[133G2/2[2G
+[1G     test/fixtures/pretty-formatter/test.bats:16: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: FD3" >&3[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   failing test[K[273G2/2[2G
 [1G     test/fixtures/pretty-formatter/test.bats:17: `[33;22mecho "$BATS_TEST_DESCRIPTION setup: stdout"[0m`[K
 [1G       > [34;22mfailing test setup: stdout[0m[K
 [1G       > [34;22mfailing test: FD3[0m[K
@@ -43,7 +43,7 @@
 [1G     test/fixtures/pretty-formatter/test.bats:34: `[33;22mrun echo "$BATS_TEST_DESCRIPTION: run"[0m`[K
 [1G       > [34;22mbats_tap_stream_interactive_output failing test: run[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:35: `[33;22mfalse[0m`[K
-[1G     test/fixtures/pretty-formatter/test.bats:35: `[33;22mfalse[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22mteardown[0m for `failing test'[K[133G2/2[2G
+[1G     test/fixtures/pretty-formatter/test.bats:35: `[33;22mfalse[0m`[K[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[1G[K[1A[2G[1G   running [33;22mteardown[0m for `failing test'[K[273G2/2[2G
 [1G       > [34;22mfailing test teardown: FD3[0m[K
 [1G     test/fixtures/pretty-formatter/test.bats:20: `[33;22mteardown() {[0m`[K
 [1G     test/fixtures/pretty-formatter/test.bats:21: `[33;22mecho "$BATS_TEST_DESCRIPTION teardown: FD3" >&3[0m`[K
