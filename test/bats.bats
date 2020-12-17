@@ -701,3 +701,13 @@ END_OF_ERR_MSG
   [ "${lines[5]}" = 'ok 5 should_be_found_with_function_and_parens' ]
   [ "${lines[6]}" = 'ok 6 should_be_found_with_function_parens_and_whitespace' ]
 }
+
+@test "Test nounset does not trip up bats' internals (see #385)" {
+  # don't export nounset within this file or we might trip up the testsuite itself,
+  # getting bad diagnostics
+  run bash -c "set -o nounset; export SHELLOPTS; bats --tap '$FIXTURE_ROOT/passing.bats'"
+  echo "$output"
+  [ "${lines[0]}" = "1..1" ]
+  [ "${lines[1]}" = "ok 1 a passing test" ]
+  [ ${#lines[@]} = 2 ]
+}
