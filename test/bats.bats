@@ -602,9 +602,6 @@ END_OF_ERR_MSG
 }
 
 @test "Don't hang on CTRL-C (issue #353)" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
   load 'concurrent-coordination'
   # shellcheck disable=SC2031,SC2030
   export SINGLE_USE_LATCH_DIR="${BATS_TEST_TMPDIR}"
@@ -731,10 +728,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails the current test" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
-  
   # shellcheck disable=SC2031,SC2030
   export TEMPFILE="$BATS_TEST_TMPDIR/$BATS_TEST_NAME.log"
 
@@ -767,10 +760,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails the current run" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
-
   # shellcheck disable=SC2031,2030
   export TEMPFILE="$BATS_TEST_TMPDIR/$BATS_TEST_NAME.log"
 
@@ -802,10 +791,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails after run" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
-
   # shellcheck disable=SC2031,2030
   export TEMPFILE="$BATS_TEST_TMPDIR/$BATS_TEST_NAME.log"
 
@@ -837,10 +822,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails the current teardown" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
-
   # shellcheck disable=SC2031,SC2030
   export TEMPFILE="$BATS_TEST_TMPDIR/$BATS_TEST_NAME.log"
 
@@ -873,10 +854,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails the current setup_file" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
-
   # shellcheck disable=SC2031,SC2030
   export TEMPFILE="$BATS_TEST_TMPDIR/$BATS_TEST_NAME.log"
 
@@ -909,9 +886,6 @@ END_OF_ERR_MSG
 }
 
 @test "CTRL-C aborts and fails the current teardown_file" {
-  if [[ "$BATS_NUMBER_OF_PARALLEL_JOBS" -gt 1 ]]; then
-    skip "Aborts don't work in parallel mode"
-  fi
   # shellcheck disable=SC2031
   export TEMPFILE="${BATS_TEST_TMPDIR}/$BATS_TEST_NAME.log"
 
