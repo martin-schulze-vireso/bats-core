@@ -112,8 +112,10 @@ bats_run_teardown_file() {
   trap 'bats_file_exit_trap' EXIT
   # rely on bats_error_trap to catch failures
   teardown_file >>"$BATS_OUT" 2>&1
-
-  BATS_TEARDOWN_FILE_COMPLETED=1
+  # shellcheck disable=SC2181 # using if around command disables errexit
+  if [[ $? -eq 0 ]]; then
+    BATS_TEARDOWN_FILE_COMPLETED=1
+  fi
 }
 
 bats_file_teardown_trap() {

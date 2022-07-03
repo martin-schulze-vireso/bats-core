@@ -68,9 +68,8 @@ setup_file() {
 }
 
 @test "teardown_file failure fails at least one test from the file" {
-  run bats "$FIXTURE_ROOT/teardown_file_failed.bats"
-  [[ $status -ne 0 ]]
-  echo "$output"
+  run ! bats "$FIXTURE_ROOT/teardown_file_failed.bats"
+  
   [[ "${lines[0]}" == "1..1" ]]
   [[ "${lines[1]}" == "ok 1 test" ]]
   [[ "${lines[2]}" == "not ok 2 teardown_file failed" ]]
@@ -157,9 +156,7 @@ ok 2 must not see variable from first run" ]]
 }
 
 @test "halfway setup_file errors are caught and reported" {
-  run bats "$FIXTURE_ROOT/setup_file_halfway_error.bats"
-  [ $status -ne 0 ]
-  echo "$output"
+  run ! bats "$FIXTURE_ROOT/setup_file_halfway_error.bats"
   [ "${lines[0]}" == "1..1" ]
   [ "${lines[1]}" == "not ok 1 setup_file failed" ]
   [ "${lines[2]}" == "# (from function \`setup_file' in test file $RELATIVE_FIXTURE_ROOT/setup_file_halfway_error.bats, line 3)" ]
@@ -167,9 +164,8 @@ ok 2 must not see variable from first run" ]]
 }
 
 @test "halfway teardown_file errors are caught and reported" {
-  run bats "$FIXTURE_ROOT/teardown_file_halfway_error.bats"
-  echo "$output"
-  [[ $status -ne 0 ]]
+  run ! bats "$FIXTURE_ROOT/teardown_file_halfway_error.bats"
+
   [[ "${lines[0]}" == "1..1" ]]
   [[ "${lines[1]}" == "ok 1 empty" ]]
   [[ "${lines[2]}" == "not ok 2 teardown_file failed" ]]
@@ -190,4 +186,13 @@ ok 2 must not see variable from first run" ]]
 
   [ ! -f "$LOG" ] # setup_file must not have been executed!
   [ "${lines[0]}" == '1..1' ] # but at least one test should have been run
+}
+
+@test "failure in teardown_file does not prevent failure locaton in setup_file from beeing shown (issue #615)" {
+  
+  run -1 bats "$FIXTURE_ROOT/failure_in_setup_and_teardown_file.bats"
+  [ "${lines[0]}" == "1..1" ]
+  [ "${lines[1]}" == "not ok 1 setup_file failed" ]
+  [ "${lines[2]}" == "# (from function \`setup_file' in test file $RELATIVE_FIXTURE_ROOT/failure_in_setup_and_teardown_file.bats, line 2)" ]
+  [ "${lines[3]}" == "#   \`false' failed" ]
 }
