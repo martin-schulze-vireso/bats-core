@@ -1,0 +1,4 @@
+1..1
+suite /home/runner/work/dms-test/dms-test/test/mail_time.bats
+begin 1 checking time: setting the time with TZ works correctly
+ok 1 checking time: setting the time with TZ works correctly
