@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 ### Fixed
 
 * pretty formatter was not the default on interactive shells anymore (#1220)
+* avoid blocking failing tests for full BATS_TEST_TIMEOUT (#1226)
 
 ## [1.14.0] - 2026-07-21
 
