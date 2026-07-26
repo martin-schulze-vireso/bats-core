@@ -284,10 +284,13 @@ bats_start_timeout_countdown() { # <timeout>
     # so we use wait below and kill sleep explicitly when signalled to do so
     # (On Windows the TERM signal does not seem to shut down sleep)
     sleep "$timeout" &
+    # shellcheck disable=SC1073,SC2009
+    ps -f $! >&3
     # shellcheck disable=SC2064
-    trap "kill $!; exit 0" TERM
-    wait
-    trap '' TERM
+    trap "# echo \"# after $!:\"; kill $!; exit 0" TERM
+    wait $!
+    echo "# wait finished $!"
+    trap 'echo "# term disabled"' TERM
     bats_kill_processes_of $target_pid TERM
   ) &
 }

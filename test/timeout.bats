@@ -35,6 +35,8 @@ bats_require_minimum_version 1.5.0
   ((SECONDS < 10)) || false
 }
 
+# bats file_tags=bats:focus
+
 @test "timeout should not hold up faster (skipped) tests (#1067)" {
   SECONDS=0
   DURATION=10
@@ -43,10 +45,12 @@ bats_require_minimum_version 1.5.0
   (( SECONDS < DURATION ))
 }
 
+
 @test "timeout should not hold up faster (failing) tests (#1206)" {
   SECONDS=0
   DURATION=10
   reentrant_run ! env BATS_TEST_TIMEOUT=$DURATION bats -T "$FIXTURE_ROOT/issue1206.bats"
   echo Took $SECONDS seconds
+  echo "$output"
   (( SECONDS < DURATION ))
 }
